@@ -1,0 +1,55 @@
+{
+  "project_info": {
+    "project_number": "892876861416",
+    "firebase_url": "https://feastars-1861e-default-rtdb.firebaseio.com",
+    "project_id": "feastars-1861e",
+    "storage_bucket": "feastars-1861e.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:892876861416:android:7bb725f4187eeee5af3e5d",
+        "android_client_info": {
+          "package_name": "com.example.feastarfeed"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBr35nS4hE05XS1ME6YDD1V3da2dgZ2fV4"
+        },
+        {
+          "current_key": "AIzaSyBmv90HrxpQpNnWcmhZp1N1h8I_YYPfdmw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:892876861416:android:3aee0bc2f0560e84af3e5d",
+        "android_client_info": {
+          "package_name": "com.example.myapplication"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBr35nS4hE05XS1ME6YDD1V3da2dgZ2fV4"
+        },
+        {
+          "current_key": "AIzaSyBmv90HrxpQpNnWcmhZp1N1h8I_YYPfdmw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

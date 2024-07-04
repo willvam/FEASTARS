@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">FEASTARfeed</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="enter_content">Enter Content</string>
+    <string name="API_KEY">AIzaSyBJiZZZVX1857CpQvpsGUKpyOdmvHkJW3o</string>
+</resources>
