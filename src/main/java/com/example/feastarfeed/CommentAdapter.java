@@ -39,14 +39,14 @@ public class CommentAdapter extends RecyclerView.Adapter<CommentAdapter.ViewHold
     @NonNull
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.comment_list_item, parent, true);
+        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.comment_list_item, parent, false);
         return new ViewHolder(view);
     }
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         holder.comment.setText(arrayList.get(position).getContent());
-        holder.itemView.setOnClickListener(view -> onItemClickListener.onClick(arrayList.get(position)));
+        //holder.itemView.setOnClickListener(view -> onItemClickListener.onClick(arrayList.get(position)));
     }
 
     @Override
@@ -70,3 +70,4 @@ public class CommentAdapter extends RecyclerView.Adapter<CommentAdapter.ViewHold
         void onClick(Comment comment);
     }
 }
+

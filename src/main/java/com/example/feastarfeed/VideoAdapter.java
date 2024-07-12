@@ -1,9 +1,6 @@
 package com.example.feastarfeed;
 
-import static android.content.ContentValues.TAG;
-
-import android.app.AlertDialog;
-import android.content.DialogInterface;
+import android.content.Context;
 import android.media.MediaPlayer;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -14,14 +11,19 @@ import android.widget.TextView;
 import android.widget.VideoView;
 
 import androidx.annotation.NonNull;
-import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentTransaction;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.viewpager2.widget.ViewPager2;
 
-import com.google.android.gms.tasks.OnFailureListener;
-import com.google.android.gms.tasks.OnSuccessListener;
-import com.google.android.material.textfield.TextInputEditText;
-import com.google.android.material.textfield.TextInputLayout;
+import com.google.android.exoplayer2.ExoPlayer;
+import com.google.android.exoplayer2.MediaItem;
+import com.google.android.exoplayer2.Player;
+import com.google.android.exoplayer2.source.MediaSource;
+import com.google.android.exoplayer2.source.ProgressiveMediaSource;
+import com.google.android.exoplayer2.ui.PlayerView;
+import com.google.android.exoplayer2.upstream.DefaultHttpDataSource;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -30,7 +32,6 @@ import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 public class VideoAdapter extends RecyclerView.Adapter<VideoAdapter.VideoViewHolder> {
 
@@ -46,7 +47,7 @@ public class VideoAdapter extends RecyclerView.Adapter<VideoAdapter.VideoViewHol
     public ArrayList<Comment> commentArrayList;
 
     public CommentAdapter commentAdapter;
-
+    private long id;
     private DatabaseReference pDatabase;
     public Boolean getDoFav() {
         return setDoFav;
@@ -56,12 +57,26 @@ public class VideoAdapter extends RecyclerView.Adapter<VideoAdapter.VideoViewHol
         return setDoTag;
     }
 
-    public VideoAdapter(List<Video> VideoList, DatabaseReference videosRef){
+    private FragmentManager fragmentManager;
+    boolean bottomVideoViewVisible = false;
+    boolean tagViewVisible = false;
+    private Context context;
+    private  String username;
+//    private List<SharedPreferencesUtils> userList;
+//
+//    public void UserAdapter(Context context, List<SharedPreferencesUtils> userList) {
+//        this.context = context;
+//        this.userList = userList;
+//    }
+
+    public VideoAdapter(List<Video> VideoList, DatabaseReference videosRef, FragmentManager fragmentManager){
+        this.fragmentManager = fragmentManager;
         this.videoList = VideoList;
         this.videosRef = videosRef;
         mDatabase = database.getReference("Videos");
-        pDatabase = database.getReference("User");
+        pDatabase = database.getReference("Users");
         cmtDatabase = database.getReference("Comments");
+
     }
 
     @NonNull
@@ -76,15 +91,26 @@ public class VideoAdapter extends RecyclerView.Adapter<VideoAdapter.VideoViewHol
         Video video = videoList.get(position);
         holder.setVideoViewData(video);
 
+// 獲取 username
+        if (context == null) {
+            // 从 ViewHolder.itemView 获取一个非空的 Context
+            context = holder.itemView.getContext();
+        }
+         username = SharedPreferencesUtils.getUsername(context);
+        Log.d("username2", username);
+
+
         holder.fav.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 // Toggle the value of doFav for the clicked video
-                toggleDoFav(holder.getAdapterPosition(),holder, video);
+                toggleDoFav(holder.getAdapterPosition(),holder);
             }
         });
 
-        DatabaseReference videoLike = database.getReference("videoCont"+ (position+1) ).child("doFav");
+        id = video.getId();
+        Log.d("位置tag", String.valueOf(id));
+        DatabaseReference videoLike = database.getReference("videoCont"+ id ).child("doFav");
         videoLike.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
@@ -95,14 +121,11 @@ public class VideoAdapter extends RecyclerView.Adapter<VideoAdapter.VideoViewHol
                     if (doFav) {
                         // 设置喜欢图标
                         holder.fav.setImageResource(R.drawable.baseline_favorite_40);
-                        setDoFav = true;
                     } else {
                         // 设置不喜欢图标
                         holder.fav.setImageResource(R.drawable.baseline_favorite_border_40);
-                        setDoFav = false;
                     }
                 }
-                Log.d("VideoAdapter", "setDoFav123 value: " + setDoFav); // 添加一个 Log 语句来输出 setDoFav 的值
             }
 
             @Override
@@ -115,11 +138,11 @@ public class VideoAdapter extends RecyclerView.Adapter<VideoAdapter.VideoViewHol
             @Override
             public void onClick(View v) {
                 // Toggle the value of doFav for the clicked video
-                toggleDoTag(holder.getAdapterPosition(), holder, video);
+                toggleDoTag(holder.getAdapterPosition(), holder);
             }
         });
 
-        DatabaseReference videoTag = database.getReference("videoCont"+ (position+1) ).child("doFav");
+        DatabaseReference videoTag = database.getReference("videoCont"+ id ).child("doFav");
         videoTag.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
@@ -130,14 +153,11 @@ public class VideoAdapter extends RecyclerView.Adapter<VideoAdapter.VideoViewHol
                     if (doTag) {
                         // 设置喜欢图标
                         holder.tag.setImageResource(R.drawable.baseline_bookmark_40);
-                        setDoTag = true;
                     } else {
                         // 设置不喜欢图标
                         holder.tag.setImageResource(R.drawable.baseline_bookmark_border_40);
-                        setDoTag = false;
                     }
                 }
-                Log.d("VideoAdapter", "setDoTag123 value: " + setDoTag); // 添加一个 Log 语句来输出 setDoFav 的值
             }
 
             @Override
@@ -146,126 +166,77 @@ public class VideoAdapter extends RecyclerView.Adapter<VideoAdapter.VideoViewHol
             }
         });
 
-        holder.chat.setOnClickListener(new View.OnClickListener() {
+        holder.playerView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                toggleDoChat(holder, video);
-                View view1 = LayoutInflater.from(v.getContext()).inflate(R.layout.add_comment, null, false);
-                TextInputLayout contentLayout;
-                contentLayout = view1.findViewById(R.id.contentLayout);
-                TextInputEditText contentET;
-                contentET = view1.findViewById(R.id.contentET);
-                AlertDialog alertDialog = new AlertDialog.Builder(v.getContext())
-                        .setTitle("留言")
-                        .setView(view1)
-                        .setPositiveButton("新增", new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialogInterface, int which) {
-                                if (contentET.getTag() != null && contentET.getTag().toString().isEmpty()) {
-                                    contentLayout.setError("This field is required");
-                                } else {
-                                    Comment comment = new Comment();
-                                    comment.setContent(contentET.getText().toString());
-                                    cmtDatabase.child("comments").push().setValue(comment).addOnSuccessListener(new OnSuccessListener<Void>() {
-                                        @Override
-                                        public void onSuccess(Void unused) {
-                                            dialogInterface.dismiss();
-                                        }
-                                    }).addOnFailureListener(new OnFailureListener() {
-                                        @Override
-                                        public void onFailure(@NonNull Exception e) {
+                Fragment bottomVideoViewFragment = fragmentManager.findFragmentById(R.id.frame_layout1);
+                Fragment tagViewFragment = fragmentManager.findFragmentById(R.id.frame_layout2);
 
-                                        }
-                                    });
-                                }
-                            }
-                        })
-                        .setNegativeButton("取消", new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialogInterface, int which) {
-                                dialogInterface.dismiss();
-                            }
-                        })
-                        .create();
-                alertDialog.show();
+                if (bottomVideoViewFragment != null) {
+                    FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+                    fragmentTransaction.setCustomAnimations(R.anim.slide_in, R.anim.slide_out);
+                    fragmentTransaction.remove(bottomVideoViewFragment);
+                    fragmentTransaction.commit();
+                }
+                bottomVideoViewVisible = false;
+
+                if (tagViewFragment != null) {
+                    FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+                    fragmentTransaction.setCustomAnimations(R.anim.slide_in2, R.anim.slide_out2);
+                    fragmentTransaction.remove(tagViewFragment);
+                    fragmentTransaction.commit();
+                }
+
+                tagViewVisible = false;
             }
-
-
 
         });
 
-        LayoutInflater inflater = LayoutInflater.from(holder.itemView.getContext());
-        View recyclerViewLayout = inflater.inflate(R.layout.add_comment, null);
-        RecyclerView recyclerView = recyclerViewLayout.findViewById(R.id.recycler);
-        commentArrayList = new ArrayList<>();
-
-        cmtDatabase.child("comments").addValueEventListener(new ValueEventListener() {
+        holder.chat.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot) {
-                commentArrayList.clear();
+            public void onClick(View v) {
+                // Toggle the value of doFav for the clicked video
+                FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+                fragmentTransaction.setCustomAnimations(R.anim.slide_in, R.anim.slide_out);
 
-                for (DataSnapshot dataSnapshot: snapshot.getChildren()){
-                    Comment comment = dataSnapshot.getValue(Comment.class);
-
-                    Objects.requireNonNull(comment).setKey(dataSnapshot.getKey());
-                    commentArrayList.add(comment);
-                    Log.d("comments", "Comment count: " + commentArrayList.size());
-                }
-                if (!commentArrayList.isEmpty()) {
-                    // 数据不为空时设置Adapter
-                    commentAdapter = new CommentAdapter(holder.itemView.getContext(), commentArrayList);
-                    LinearLayoutManager llm =  new LinearLayoutManager(holder.itemView.getContext(),LinearLayoutManager.VERTICAL,false);
-                    recyclerView.setLayoutManager(llm);
-                    recyclerView.setAdapter(commentAdapter);
-                } else {
-                    // 数据为空时不设置Adapter
-                    Log.d("TAG", "No comments available");
-                }
-
-                commentAdapter.setOnItemClickListener(new CommentAdapter.OnItemClickListener() {
-                    @Override
-                    public void onClick(Comment comment) {
-                        TextInputLayout contentLayout;
-                        TextInputEditText contentET;
-                        contentET = recyclerViewLayout.findViewById(R.id.contentET);
-                        contentLayout = recyclerViewLayout.findViewById(R.id.contentLayout);
-
-                        contentET.setText(comment.getContent());
-
-                        AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(holder.itemView.getContext());
-                        AlertDialog alertDialog = alertDialogBuilder
-                                .setTitle("Edit")
-                                .setView(recyclerViewLayout)
-                                .setPositiveButton("Save", new DialogInterface.OnClickListener() {
-                                    @Override
-                                    public void onClick(DialogInterface dialogInterface, int which) {
-                                        if (contentET.getTag() != null && contentET.getTag().toString().isEmpty()) {
-                                            contentLayout.setError("This field is required");
-                                        } else {
-                                            dialogInterface.dismiss();
-                                        }
-                                    }
-                                })
-                                .setNeutralButton("Close", new DialogInterface.OnClickListener() {
-                                    @Override
-                                    public void onClick(DialogInterface dialogInterface, int which) {
-                                        dialogInterface.dismiss();
-                                    }
-                                })
-                                .setNegativeButton("Delete", new DialogInterface.OnClickListener() {
-                                    @Override
-                                    public void onClick(DialogInterface dialogInterface, int which) {
-                                        dialogInterface.dismiss();
-                                    }
-                                }).create();
-                        alertDialog.show();
+                if (bottomVideoViewVisible) {
+                    // 隐藏 Bottom_VIdeo_View
+                    Fragment bottomVideoViewFragment = fragmentManager.findFragmentById(R.id.frame_layout1);
+                    if (bottomVideoViewFragment != null) {
+                        fragmentTransaction.remove(bottomVideoViewFragment);
+                        bottomVideoViewVisible = false;
                     }
-                });
-            }
+                } else {
+                    // 显示 Bottom_VIdeo_View
+                    fragmentTransaction.replace(R.id.frame_layout1, new CommentFragment());
+                    bottomVideoViewVisible = true;
+                }
 
+                fragmentTransaction.commit();
+            }
+        });
+
+        holder.foods.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onCancelled(@NonNull DatabaseError error) {
-                Log.e(TAG, "Failed to read value.", error.toException());
+            public void onClick(View v) {
+
+                FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+                fragmentTransaction.setCustomAnimations(R.anim.slide_in2, R.anim.slide_out2);
+                if (tagViewVisible) {
+                    // 隐藏 Bottom_VIdeo_View
+                    Fragment tagViewFragment = fragmentManager.findFragmentById(R.id.frame_layout2);
+                    if (tagViewFragment != null) {
+                        fragmentTransaction.remove(tagViewFragment);
+                        tagViewVisible = false;
+                    }
+                } else {
+                    // 显示 Bottom_VIdeo_View
+                    fragmentTransaction.replace(R.id.frame_layout2, new TagFragment());
+                    tagViewVisible = true;
+                }
+
+                fragmentTransaction.commit();
+
             }
         });
 
@@ -277,8 +248,70 @@ public class VideoAdapter extends RecyclerView.Adapter<VideoAdapter.VideoViewHol
     }
 
 
+//    public class VideoViewHolder extends RecyclerView.ViewHolder{
+//        VideoView videoView;
+//
+//        TextView title, address , date ,  price;
+//
+//        ImageView fav, tag, chat, foods;
+//
+//        ViewPager2 viewPager2;
+//
+//
+//
+//        public VideoViewHolder(@NonNull View itemView) {
+//            super(itemView);
+//
+//            videoView = itemView.findViewById(R.id.videoView);
+//            title = itemView.findViewById(R.id.video_title);
+//            address = itemView.findViewById(R.id.video_address);
+//            date = itemView.findViewById(R.id.video_date);
+//            price = itemView.findViewById(R.id.video_price);
+//            fav = itemView.findViewById(R.id.heartImageView);
+//            tag = itemView.findViewById(R.id.tagImageView);
+//            chat = itemView.findViewById(R.id.chatImageView);
+//            foods = itemView.findViewById(R.id.foodsearchImageView);
+//            viewPager2 = itemView.findViewById(R.id.viewPager2);
+//        }
+//
+//        public  void setVideoViewData(Video video){
+//            title.setText(video.getTitle());
+//            address.setText(video.getAddress());
+//            date.setText(video.getDate());
+//            price.setText(video.getPrice());
+//            videoView.setVideoPath(video.getVideoUrl());
+//
+//            videoView.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
+//                @Override
+//                public void onPrepared(MediaPlayer mp) {
+//                    mp.start();
+//
+//                    float videoRatio = mp.getVideoWidth() / (float) mp.getVideoHeight();
+//                    float screenRatio = videoView.getWidth() / (float) videoView.getHeight();
+//
+//                    float scale = screenRatio/videoRatio;
+//                    if ( scale >= 1f ){
+//                        videoView.setScaleX(scale);
+//                    }else{
+//                        videoView.setScaleY(1f/scale);
+//                    }
+//
+//                }
+//            });
+//
+//            videoView.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+//                @Override
+//                public void onCompletion(MediaPlayer mp) {
+//                    mp.start();
+//                }
+//            });
+//
+//        }
+//
+//    }
     public class VideoViewHolder extends RecyclerView.ViewHolder{
-        VideoView videoView;
+        private ExoPlayer player;
+        PlayerView playerView;
 
         TextView title, address , date ,  price;
 
@@ -286,12 +319,12 @@ public class VideoAdapter extends RecyclerView.Adapter<VideoAdapter.VideoViewHol
 
         ViewPager2 viewPager2;
 
-
+        String vurl;
 
         public VideoViewHolder(@NonNull View itemView) {
             super(itemView);
 
-            videoView = itemView.findViewById(R.id.videoView);
+            playerView = itemView.findViewById(R.id.playerView);
             title = itemView.findViewById(R.id.video_title);
             address = itemView.findViewById(R.id.video_address);
             date = itemView.findViewById(R.id.video_date);
@@ -301,45 +334,75 @@ public class VideoAdapter extends RecyclerView.Adapter<VideoAdapter.VideoViewHol
             chat = itemView.findViewById(R.id.chatImageView);
             foods = itemView.findViewById(R.id.foodsearchImageView);
             viewPager2 = itemView.findViewById(R.id.viewPager2);
+
+            // 創建 ExoPlayer 實例
+            player = new ExoPlayer.Builder(itemView.getContext()).build();
+
+            // 將 ExoPlayer 與 PlayerView 關聯
+            playerView.setPlayer(player);
         }
 
-        public  void setVideoViewData(Video video){
+        public void setVideoViewData(Video video){
             title.setText(video.getTitle());
             address.setText(video.getAddress());
             date.setText(video.getDate());
             price.setText(video.getPrice());
-            videoView.setVideoPath(video.getVideoUrl());
+            //playerView.setVideoPath(video.getVideoUrl());
+            vurl = video.getVideoUrl();
 
-            videoView.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
-                @Override
-                public void onPrepared(MediaPlayer mp) {
-                    mp.start();
+            // 構建媒體源
+            MediaSource mediaSource = buildMediaSource();
 
-                    float videoRatio = mp.getVideoWidth() / (float) mp.getVideoHeight();
-                    float screenRatio = videoView.getWidth() / (float) videoView.getHeight();
+            // 準備 ExoPlayer 並播放
+            player.setMediaSource(mediaSource);
+            player.prepare();
+            player.setPlayWhenReady(true);
 
-                    float scale = screenRatio/videoRatio;
-                    if ( scale >= 1f ){
-                        videoView.setScaleX(scale);
-                    }else{
-                        videoView.setScaleY(1f/scale);
-                    }
-
-                }
-            });
-
-            videoView.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
-                @Override
-                public void onCompletion(MediaPlayer mp) {
-                    mp.start();
-                }
-            });
+//            playerView.addListener(new Player.Listener() {
+//                @Override
+//                public void onPrepared(MediaPlayer mp) {
+//                    mp.start();
+//
+//                    float videoRatio = mp.getVideoWidth() / (float) mp.getVideoHeight();
+//                    float screenRatio = playerView.getWidth() / (float) playerView.getHeight();
+//
+//                    float scale = screenRatio/videoRatio;
+//                    if ( scale >= 1f ){
+//                        playerView.setScaleX(scale);
+//                    }else{
+//                        playerView.setScaleY(1f/scale);
+//                    }
+//
+//                }
+//            });
+//
+//            playerView.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+//                @Override
+//                public void onCompletion(MediaPlayer mp) {
+//                    mp.start();
+//                }
+//            });
 
         }
 
+        private MediaSource buildMediaSource() {
+
+        // 從 Firebase Storage 獲取視頻的流式傳輸 URL
+        //vurl = "https://firebasestorage.googleapis.com/v0/b/feastars-1861e.appspot.com/o/Videos%2Fa.mp4?alt=media&token=b7067703-908c-4a98-87a2-b01105a9c8f9";
+
+        // 創建 ProgressiveMediaSource 用於播放 MP4 文件
+        ProgressiveMediaSource mediaSource = new ProgressiveMediaSource.Factory(
+                new DefaultHttpDataSource.Factory())
+                .createMediaSource(MediaItem.fromUri(vurl));
+
+        return mediaSource;
+        }
     }
-    public void toggleDoFav(int position, VideoViewHolder holder, Video video) {
-        DatabaseReference videoRef = database.getReference("videoCont"+(position+1)).child("doFav");
+
+
+
+    public void toggleDoFav(int position, VideoViewHolder holder) {
+        DatabaseReference videoRef = database.getReference("videoCont"+id).child("doFav");
         videoRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
@@ -354,17 +417,17 @@ public class VideoAdapter extends RecyclerView.Adapter<VideoAdapter.VideoViewHol
 
 //////演算法/////////////////////////////////////////////////////////////////
                         //演算法
-                        //DatabaseReference preferencesRef = pDatabase.child("preferences");
                         // 獲取 "tag" 節點的引用
-                        //DatabaseReference tagRef = database.getReference("Videos/V1/tag");
-                        DatabaseReference tagRef =database.getReference("Videos").child("V"+(position+1)).child("tag");
 
+                        DatabaseReference tagRef =database.getReference("Videos").child("V"+id).child("tag");
+                        Log.d("tagid", String.valueOf(id));
+                        Log.d("tag", String.valueOf(tagRef));
                         tagRef.addListenerForSingleValueEvent(new ValueEventListener() {
                             @Override
                             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                                 if (dataSnapshot.exists()) {
                                     String value = dataSnapshot.getValue(String.class);//前面有宣告
-                                    DatabaseReference preferRef = pDatabase.child("preferences").child(value);//tag位置
+                                    DatabaseReference preferRef = pDatabase.child(username).child("preferences").child(value);//tag位置
                                     preferRef.addListenerForSingleValueEvent(new ValueEventListener() {
                                         @Override
                                         public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
@@ -403,14 +466,14 @@ public class VideoAdapter extends RecyclerView.Adapter<VideoAdapter.VideoViewHol
                         //DatabaseReference preferencesRef = pDatabase.child("preferences");
                         // 獲取 "tag" 節點的引用
                         // DatabaseReference tagRef = database.getReference("Videos/V1/tag");
-                        DatabaseReference tagRef =database.getReference("Videos").child("V"+(position+1)).child("tag");
+                        DatabaseReference tagRef =database.getReference("Videos").child("V"+ id ).child("tag");
 
                         tagRef.addListenerForSingleValueEvent(new ValueEventListener() {
                             @Override
                             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                                 if (dataSnapshot.exists()) {
                                     String value = dataSnapshot.getValue(String.class);//前面有宣告
-                                    DatabaseReference preferRef = pDatabase.child("preferences").child(value);//tag位置
+                                    DatabaseReference preferRef = pDatabase.child(username).child("preferences").child(value);//tag位置
                                     preferRef.addListenerForSingleValueEvent(new ValueEventListener() {
                                         @Override
                                         public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
@@ -459,9 +522,9 @@ public class VideoAdapter extends RecyclerView.Adapter<VideoAdapter.VideoViewHol
 
 
 
-    public void toggleDoTag(int position, VideoViewHolder holder, Video video) {
+    public void toggleDoTag(int position, VideoViewHolder holder) {
 
-        DatabaseReference videoRef = database.getReference("videoCont"+(position+1)).child("doTag");
+        DatabaseReference videoRef = database.getReference("videoCont"+id).child("doTag");
         videoRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
@@ -471,9 +534,92 @@ public class VideoAdapter extends RecyclerView.Adapter<VideoAdapter.VideoViewHol
                     if (!doTag) {
                         holder.tag.setImageResource(R.drawable.baseline_bookmark_40); // 喜爱图标
                         setDoTag = true;
+//////演算法/////////////////////////////////////////////////////////////////
+                        //演算法
+                        // 獲取 "tag" 節點的引用
+
+                        DatabaseReference tagRef =database.getReference("Videos").child("V"+id).child("tag");
+
+                        tagRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                            @Override
+                            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                                if (dataSnapshot.exists()) {
+                                    String value = dataSnapshot.getValue(String.class);//前面有宣告
+                                    DatabaseReference preferRef = pDatabase.child(username).child("preferences").child(value);//tag位置
+                                    preferRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                                        @Override
+                                        public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                                            if (dataSnapshot.exists()) {
+                                                long currentValue = dataSnapshot.getValue(Long.class);
+                                                long newValue = currentValue + 15;
+                                                preferRef.setValue(newValue);
+                                            } else {
+                                                preferRef.setValue(15);
+                                            }
+                                        }
+
+
+                                        @Override
+                                        public void onCancelled(@NonNull DatabaseError databaseError) {
+                                            // Handle onCancelled
+                                        }
+                                    });
+                                }
+                            }
+
+
+                            @Override
+                            public void onCancelled(@NonNull DatabaseError databaseError) {
+                                // 處理錯誤
+
+
+                            }
+                        });
+////////演算法end//////
                     } else {
                         holder.tag.setImageResource(R.drawable.baseline_bookmark_border_40); // 不喜爱图标
                         setDoTag = false;
+                        //演算法
+                        //DatabaseReference preferencesRef = pDatabase.child("preferences");
+                        // 獲取 "tag" 節點的引用
+                        // DatabaseReference tagRef = database.getReference("Videos/V1/tag");
+                        DatabaseReference tagRef =database.getReference("Videos").child("V"+id).child("tag");
+
+                        tagRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                            @Override
+                            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                                if (dataSnapshot.exists()) {
+                                    String value = dataSnapshot.getValue(String.class);//前面有宣告
+                                    DatabaseReference preferRef = pDatabase.child(username).child("preferences").child(value);//tag位置
+                                    preferRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                                        @Override
+                                        public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                                            if (dataSnapshot.exists()) {
+                                                long currentValue = dataSnapshot.getValue(Long.class);
+                                                long newValue = currentValue - 15;
+                                                preferRef.setValue(newValue);
+                                            } else {
+                                                preferRef.setValue(0);
+                                            }
+                                        }
+
+
+                                        @Override
+                                        public void onCancelled(@NonNull DatabaseError databaseError) {
+                                            // Handle onCancelled
+                                        }
+                                    });
+                                }
+                            }
+
+
+                            @Override
+                            public void onCancelled(@NonNull DatabaseError databaseError) {
+                                // 處理錯誤
+
+
+                            }
+                        });
                     }
                 }
                 Log.d("VideoAdapter", "setDoTag value: " + setDoTag);

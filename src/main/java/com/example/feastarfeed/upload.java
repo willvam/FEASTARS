@@ -6,33 +6,32 @@ import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
-
 import android.annotation.SuppressLint;
+import android.app.DatePickerDialog;
 import android.content.ClipData;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.media.MediaMetadataRetriever;
 import android.net.Uri;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
+import android.widget.AutoCompleteTextView;
 import android.widget.Button;
+import android.widget.DatePicker;
 import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.Toast;
 import android.widget.TextView;
-
 import com.example.feastarfeed.ml.ModelUnquant;
-
 import org.tensorflow.lite.DataType;
 import org.tensorflow.lite.support.tensorbuffer.TensorBuffer;
-
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.progressindicator.LinearProgressIndicator;
 import com.google.firebase.FirebaseApp;
-import com.google.firebase.auth.FirebaseAuth;
+
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.ValueEventListener;
@@ -40,12 +39,13 @@ import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.OnProgressListener;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
-
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
+import java.nio.ByteOrder;;
+import java.util.Calendar;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Locale;
 import java.util.Map;
 import java.util.ArrayList;
 import java.util.List;
@@ -62,21 +62,27 @@ public class upload extends AppCompatActivity {
     LinearProgressIndicator progressIndicator;
     Uri video;
     Button uploadvideo,selectvideo,selectphoto;
+    private ImageButton Back_button;
     ImageView videopreview;
-    EditText foodTagEditText;
-    TextView foodclass;
-    String uid;
+    EditText titleEditText,addressEditText,priceEditText,selectedDateEditText;
+
+    TextView foodTagsEditText,foodclass,selectedDateText,foodTagsText,titleText,priceText,addressText;
+    DatePicker datePicker;
     private DatabaseReference databaseReference;
-    DatabaseReference userRef;
+    DatabaseReference userRef,totalFoodTagRef;
     int imageSize = 224;
+    String savevideotag;
+    private StringBuffer selectedTagsBuffer = new StringBuffer();
 
 
     @SuppressLint("MissingInflatedId")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+
         super.onCreate(savedInstanceState);
         setContentView(R.layout.fragment_add);
         databaseReference = FirebaseDatabase.getInstance().getReference("videos");
+        totalFoodTagRef = FirebaseDatabase.getInstance().getReference("totalfoodtag");//全部的TAg
         userRef = FirebaseDatabase.getInstance().getReference("Users");
 
         FirebaseApp.initializeApp((this));
@@ -84,25 +90,27 @@ public class upload extends AppCompatActivity {
 
         MaterialToolbar toolbar =findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-
         progressIndicator = findViewById(R.id.process);
         videopreview = findViewById(R.id.vediopreview);
+
         uploadvideo = findViewById(R.id.uploadvideo);
         selectvideo =findViewById(R.id.selectvideo);
         selectphoto = findViewById(R.id.selectphoto);
         foodclass = findViewById(R.id.foodclass);
 
-        foodTagEditText = findViewById(R.id.foodTagsEditText);
-        String foodTag = foodTagEditText.getText().toString();
+        foodTagsEditText = findViewById(R.id.foodTagsEditText);
+        titleEditText = findViewById(R.id.titleEditText);
+        priceEditText = findViewById(R.id.priceEditText);
+        addressEditText = findViewById(R.id.addressEditText);
+        selectedDateEditText = findViewById(R.id.selectedDateEditText);
+        Back_button = findViewById(R.id.back_button);
 
-        // 獲取傳遞過來的 currentUserUsername
-//        String currentUserUsername = getIntent().getStringExtra("currentUserUsername");
-//        uid = currentUserUsername;
-//        String currentUserUsername2 = getIntent().getStringExtra("currentUserUsername2");
-//        Log.d("upload", "currentUserUsername: " + uid);
-//        Log.d("upload", "currentUserUsername2: " + currentUserUsername2);
-//
-//        userRef = FirebaseDatabase.getInstance().getReference("Users").child(currentUserUsername2).child("ownvideo");
+        foodTagsText = findViewById(R.id.foodTagsText);
+        titleText = findViewById(R.id.titleText);
+        priceText = findViewById(R.id.priceText);
+        addressText = findViewById(R.id.addressText);
+        selectedDateText = findViewById(R.id.selectedDateText);
+        datePicker = findViewById(R.id.datePicker);
 
         selectvideo.setOnClickListener(new View.OnClickListener(){
             @Override
@@ -133,9 +141,64 @@ public class upload extends AppCompatActivity {
                 }
             }
         });
+        selectedDateEditText.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                // 顯示日期選擇器
+                showDatePickerDialog();
+            }
+        });
+        //食物標籤
+        foodTagsEditText.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                openTagSearchActivity();
+            }
+        });
+        Back_button.setOnClickListener(new View.OnClickListener(){
+            @Override
+            public void onClick(View view){
+                Intent MainActivityIntent = new Intent(getApplicationContext(), MainActivity.class);
+                startActivity(MainActivityIntent);
+                finish();
+            }
+        });
+    }
+    private void openTagSearchActivity() {
+        Intent intent = new Intent(this, TagSearchActivity.class);
+
+        tagSearchActivityLauncher.launch(intent);
+
     }
 
-    final ActivityResultLauncher<Intent> activityResultLauncher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), new ActivityResultCallback<ActivityResult>() {
+    //回傳tag值
+    private final ActivityResultLauncher<Intent> tagSearchActivityLauncher = registerForActivityResult(
+            new ActivityResultContracts.StartActivityForResult(),
+            new ActivityResultCallback<ActivityResult>() {
+                @Override
+                public void onActivityResult(ActivityResult result) {
+                    if (result.getResultCode() == RESULT_OK && result.getData() != null) {
+                        selectedTagsBuffer.setLength(0);
+                        //編輯tag
+                        ArrayList<String> selectedTags = result.getData().getStringArrayListExtra("selectedTags");
+
+                        for (int i = 0; i < selectedTags.size(); i++) {
+                            selectedTagsBuffer.append(selectedTags.get(i));
+                            if (i < selectedTags.size() - 1) {
+                                selectedTagsBuffer.append(", ");
+                            }
+                        }
+                        // 更新 foodTagsEditText 的顯示
+                        // foodTagsEditText.setText(SharedPreferencesUtils.getVideotag(upload.this));
+                        foodTagsEditText.setText(selectedTagsBuffer.toString());
+//                        savevideotag = foodTagsEditText.getText().toString();
+//                        SharedPreferencesUtils.saveVideotag(upload.this, savevideotag);
+
+                    }
+                }
+            }
+    );
+    private final ActivityResultLauncher<Intent> activityResultLauncher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), new ActivityResultCallback<ActivityResult>() {
         @Override
         //偵測照片
         public void onActivityResult(ActivityResult result) {
@@ -143,6 +206,19 @@ public class upload extends AppCompatActivity {
                 Uri selectedfile = result.getData().getData();
                 if (selectedfile != null) {
                     String fileType = getContentResolver().getType(selectedfile);
+//                    foodTagEditText.setVisibility(View.VISIBLE);
+//                    foodTagsText.setVisibility(View.VISIBLE);
+//                    titleEditText.setVisibility(View.VISIBLE);
+//                    addressEditText.setVisibility(View.VISIBLE);
+//                    priceEditText.setVisibility(View.VISIBLE);
+//                    priceEditText.setVisibility(View.VISIBLE);
+//                    selectedDateEditView.setVisibility(View.VISIBLE);
+//                    priceEditText.setVisibility(View.VISIBLE);
+//
+//                    titleText.setVisibility(View.VISIBLE);
+//                    addressText.setVisibility(View.VISIBLE);
+//                    selectedDateTextView.setVisibility(View.VISIBLE);
+
                     if (fileType != null && fileType.startsWith("image/")) {
                         // 用戶選擇了照片
                         List<Uri> imageUris = new ArrayList<>();
@@ -203,7 +279,10 @@ public class upload extends AppCompatActivity {
                         // 設置 foodclass 的內容為出現次數最多的元素
                         if (mostFrequentResult != null) {
                             foodclass.setText(mostFrequentResult);
-                            foodTagEditText.setText(mostFrequentResult);
+                            foodTagsEditText.setText(mostFrequentResult);
+                            SharedPreferencesUtils.saveVideotag(upload.this, mostFrequentResult);
+
+
                         } else {
                             foodclass.setText("No result found"); // 如果沒有結果，可以設置一個默認值
                         }
@@ -311,7 +390,7 @@ public class upload extends AppCompatActivity {
     }
     private void uploadvideo(Uri uri){
         String vid= UUID.randomUUID().toString();
-        StorageReference reference = storageReference.child("videos/" + vid);
+        StorageReference reference = storageReference.child("Videos/" + vid);
 
         reference.putFile(uri).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
             @Override
@@ -321,19 +400,33 @@ public class upload extends AppCompatActivity {
                     @Override
                     public void onSuccess(Uri downloadUri) {
                         // 將影片 URL 存儲到 Realtime Database 中
-                        DatabaseReference videoRef = databaseReference.child(vid);
+                        DatabaseReference videoRef = databaseReference.child("Videos").child(vid);
+                        DatabaseReference foodtagsRef = videoRef.child("Foodtags");
                         videoRef.child("url").setValue(downloadUri.toString());
 
                         // 獲取並解析食物標籤
-                        EditText foodTagEditText = findViewById(R.id.foodTagsEditText);
-                        String foodTags = foodTagEditText.getText().toString();
+                        //EditText foodTagEditText = findViewById(R.id.foodTagsEditText);
+                        String foodTags = foodTagsEditText.getText().toString();
                         String[] tagsArray = foodTags.split("[,，]");
+                        // 獲取影片資訊
+                        String title = titleEditText.getText().toString();
+                        String address = addressEditText.getText().toString();
+                        String price = priceEditText.getText().toString();
+                        String date = selectedDateEditText.getText().toString();; // 獲取日期的毫秒值
 
                         // 將食物標籤存儲到 Realtime Database 中
-
+                        int count = 1;
                         for (String tag : tagsArray) {
-                            videoRef.child("Foodtags").push().setValue(tag.trim());
+                            String key = "Foodtag" + count;
+                            foodtagsRef.child(key).setValue(tag.trim());
+                            count++;
                         }
+                        //videoRef.child("url").setValue(downloadUri.toString());
+                        videoRef.child("title").setValue(title);
+                        videoRef.child("address").setValue(address);
+                        videoRef.child("price").setValue(price);
+                        videoRef.child("date").setValue(date);
+
                         // 獲取當前使用者的 UID
                         String username = SharedPreferencesUtils.getUsername(upload.this);
                         // 將上傳者的 UID 存儲到 Realtime Database 中
@@ -358,6 +451,7 @@ public class upload extends AppCompatActivity {
                             }
                         });
                         Toast.makeText(upload.this,"Video uploaded successful!",Toast.LENGTH_SHORT).show();
+                        SharedPreferencesUtils.clearVideotag(upload.this);
                         Intent intent = new Intent(getApplicationContext(), MainActivity.class);
                         startActivity(intent);
                         //finish();
@@ -460,4 +554,32 @@ public class upload extends AppCompatActivity {
             // TODO Handle the exception
         }
     }
+
+
+    private void showDatePickerDialog() {
+        // 初始化 Calendar
+        Calendar calendar = Calendar.getInstance();
+        int year = calendar.get(Calendar.YEAR);
+        int month = calendar.get(Calendar.MONTH);
+        int dayOfMonth = calendar.get(Calendar.DAY_OF_MONTH);
+
+        // 創建 DatePickerDialog
+        DatePickerDialog datePickerDialog = new DatePickerDialog(
+                this,
+                new DatePickerDialog.OnDateSetListener() {
+                    @Override
+                    public void onDateSet(DatePicker datePicker, int year, int month, int day) {
+                        // 將所選日期格式化為指定格式
+                        String selectedDate = String.format(Locale.getDefault(), "%04d/%02d/%02d", year, month + 1, day);
+                        // 將格式化後的日期設置到 TextView 中
+                        selectedDateEditText.setText(selectedDate);
+                    }
+                },
+                year, month, dayOfMonth);
+
+        // 顯示 DatePickerDialog
+        datePickerDialog.show();
+    }
+
+
 }

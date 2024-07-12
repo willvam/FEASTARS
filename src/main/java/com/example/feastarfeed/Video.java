@@ -7,9 +7,9 @@ public class Video {
     private final String date;
     private final String price ;
 
-    public Boolean doFav, doTag, doChat;
+    private final Long id;
 
-    public Video(String videoUrl, String title, String address, String date, String price ) {
+    public Video(String videoUrl, String title, String address, String date, String price, long id) {
 
         if (videoUrl == null) {
             throw new IllegalArgumentException("VideoUrl cannot be null");
@@ -32,6 +32,7 @@ public class Video {
         this.address = address;
         this.price = price;
         this.date = date;
+        this.id = id;
     }
 
     public String getVideoUrl() {
@@ -49,5 +50,7 @@ public class Video {
     public String getDate() { return date; }
 
     public String getPrice() { return price; }
+
+    public Long getId() { return id; }
 
 }

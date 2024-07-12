@@ -12,12 +12,24 @@
         android:orientation="vertical"
         tools:context=".upload">
 
+
         <com.google.android.material.appbar.MaterialToolbar
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:background="?attr/colorPrimary"
-            app:titleTextColor="?attr/colorSurface" />
+            app:titleTextColor="?attr/colorSurface"
+            />
+
+        <ImageButton
+            android:id="@+id/back_button"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/back"
+            android:padding="8dp"
+            app:srcCompat="@drawable/ic_arrow_back" />
+
 
         <com.google.android.material.progressindicator.LinearProgressIndicator
             android:id="@+id/process"
@@ -30,9 +42,7 @@
             android:layout_width="300dp"
             android:layout_height="300dp"
             android:layout_gravity="center"
-            android:layout_marginTop="20dp"
-
-            />
+            android:layout_marginTop="20dp" />
 
         <Button
             android:id="@+id/uploadvideo"
@@ -47,16 +57,16 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:enabled="true"
-            android:text="selectvideo"
-            android:layout_gravity="center_horizontal" />
+            android:layout_gravity="center_horizontal"
+            android:text="selectvideo" />
 
         <Button
             android:id="@+id/selectphoto"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:enabled="false"
-            android:text="selectphoto"
-            android:layout_gravity="center_horizontal" />
+            android:layout_gravity="center_horizontal"
+            android:text="selectphoto" />
 
         <TextView
             android:id="@+id/foodclass"
@@ -65,11 +75,100 @@
             android:text="TextView"
             android:visibility="invisible"/>
 
-        <EditText
+        <TextView
+            android:id="@+id/foodTagsText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="食物標籤:"
+            android:textStyle="bold" />
+
+        <TextView
             android:id="@+id/foodTagsEditText"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="輸入食物標籤(多個標籤使用逗號區隔)"
-            android:inputType="textMultiLine" />
+            android:background="@drawable/edit_text_background"
+            android:textColor="@android:color/black"
+            android:textSize="16sp"
+            android:padding="8dp" />
+
+        <TextView
+            android:id="@+id/titleText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="影片標題:"
+
+            android:textStyle="bold" />
+
+        <EditText
+            android:id="@+id/titleEditText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/edit_text_background"
+            android:textColor="@android:color/black"
+            android:textSize="16sp"
+            android:padding="8dp"
+            android:hint="輸入影片標題" />
+
+        <TextView
+            android:id="@+id/addressText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="地址:"
+
+            android:textStyle="bold" />
+
+        <EditText
+            android:id="@+id/addressEditText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="輸入地址"
+            android:background="@drawable/edit_text_background"
+            android:textColor="@android:color/black"
+            android:textSize="16sp"
+            android:padding="8dp"/>
+
+        <TextView
+            android:id="@+id/priceText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="價格:"
+            android:textStyle="bold"
+            />
+
+        <EditText
+            android:id="@+id/priceEditText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="輸入價格"
+            android:inputType="numberDecimal"
+            android:background="@drawable/edit_text_background"
+            android:textColor="@android:color/black"
+            android:textSize="16sp"
+            android:padding="8dp"/>
+
+        <TextView
+            android:id="@+id/selectedDateText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="拍攝日期:"
+            android:textStyle="bold" />
+        <EditText
+            android:id="@+id/selectedDateEditText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="點擊選擇日期"
+            android:background="@drawable/edit_text_background"
+            android:textColor="@android:color/black"
+            android:textSize="16sp"
+            android:padding="8dp"/>
+        <DatePicker
+            android:enabled="false"
+            android:visibility="invisible"
+            android:id="@+id/datePicker"
+            android:layout_width="1dp"
+            android:layout_height="1dp"/>
+
     </LinearLayout>
+
 </ScrollView>

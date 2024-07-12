@@ -12,6 +12,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -32,7 +33,7 @@ public class PersonalPage extends AppCompatActivity {
 
     private List<VideoMetadata> videoList;
     private TextView usernameTextView,bio;
-
+    private ImageButton Back_button;
     private FirebaseDatabase database;
     private DatabaseReference userRef;
     Button logoutButton;
@@ -51,6 +52,7 @@ public class PersonalPage extends AppCompatActivity {
         //videoPreviewAdapter = new VideoPreviewAdapter(this, videoList);
         //rvVideoPreview.setAdapter(videoPreviewAdapter);
         usernameTextView = findViewById(R.id.username);
+        Back_button = findViewById(R.id.back_button);
 
         database = FirebaseDatabase.getInstance();
         userRef = database.getReference("Users");
@@ -67,6 +69,14 @@ public class PersonalPage extends AppCompatActivity {
                 SharedPreferencesUtils.clearUserData(PersonalPage.this);
                 Intent intent = new Intent(getApplicationContext(),login.class);
                 startActivity(intent);
+                finish();
+            }
+        });
+        Back_button.setOnClickListener(new View.OnClickListener(){
+            @Override
+            public void onClick(View view){
+                Intent MainActivityIntent = new Intent(getApplicationContext(), MainActivity.class);
+                startActivity(MainActivityIntent);
                 finish();
             }
         });

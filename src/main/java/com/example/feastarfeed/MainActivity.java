@@ -59,6 +59,7 @@ public class MainActivity extends AppCompatActivity {
                 return true;
             } else if (menuItemId == R.id.search) {
                 replaceFragment(new SearchFragment());
+
                 return true;
             } else if (menuItemId == R.id.add) {
                 startActivity(new Intent(this, upload.class));
