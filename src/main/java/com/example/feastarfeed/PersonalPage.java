@@ -1,146 +1,122 @@
 package com.example.feastarfeed;
 
 import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
+import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
-import android.widget.ImageButton;
-import android.widget.ImageView;
-import android.widget.ProgressBar;
+import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
-
-import com.bumptech.glide.Glide;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
-import java.util.ArrayList;
-import java.util.List;
 
-public class PersonalPage extends AppCompatActivity {
+
+public class PersonalPage extends Fragment {
 
     private RecyclerView rvVideoPreview;
 
-    private List<VideoMetadata> videoList;
-    private TextView usernameTextView,bio;
-    private ImageButton Back_button;
-    private FirebaseDatabase database;
+
+    private TextView usernameTextView, bioTextView;
     private DatabaseReference userRef;
-    Button logoutButton;
+    private EditText bioEditText;
+    private Button logoutButton,BioButton,BioCompleteButton;
+    private  String username;
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.fragment_account);
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        View view = inflater.inflate(R.layout.fragment_account, container, false);
 
-        bio = findViewById(R.id.bio);
+        bioTextView = view.findViewById(R.id.bio);
+        bioEditText = view.findViewById(R.id.bioEditText);
 
+        rvVideoPreview = view.findViewById(R.id.rvVideoPreview);
+        rvVideoPreview.setLayoutManager(new LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false));
 
-        rvVideoPreview = findViewById(R.id.rvVideoPreview);
-        rvVideoPreview.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
-        videoList = new ArrayList<>();
-        //videoPreviewAdapter = new VideoPreviewAdapter(this, videoList);
-        //rvVideoPreview.setAdapter(videoPreviewAdapter);
-        usernameTextView = findViewById(R.id.username);
-        Back_button = findViewById(R.id.back_button);
-
-        database = FirebaseDatabase.getInstance();
-        userRef = database.getReference("Users");
+        usernameTextView = view.findViewById(R.id.username);
+        userRef = FirebaseDatabase.getInstance().getReference("Users");
 
 
-        logoutButton = findViewById(R.id.logoutbutton);
+        logoutButton = view.findViewById(R.id.logoutbutton);
+        BioButton = view.findViewById(R.id.bioButton);
+        BioCompleteButton = view.findViewById(R.id.bioCompleteButton);
 
-        // 取得username
-        usernameTextView.setText(SharedPreferencesUtils.getUsername(PersonalPage.this));
+        bioEditText.setText(bioTextView.getText().toString()); //
 
-        logoutButton.setOnClickListener(new View.OnClickListener(){
+
+        // 取得 username
+        username = SharedPreferencesUtils.getUsername(requireContext());
+        usernameTextView.setText(username);
+        logoutButton.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View view){
-                SharedPreferencesUtils.clearUserData(PersonalPage.this);
-                Intent intent = new Intent(getApplicationContext(),login.class);
+            public void onClick(View view) {
+                SharedPreferencesUtils.clearUserData(requireActivity());
+                Intent intent = new Intent(requireActivity(), login.class);
                 startActivity(intent);
-                finish();
+                requireActivity().finish();
             }
         });
-        Back_button.setOnClickListener(new View.OnClickListener(){
+
+        BioButton.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View view){
-                Intent MainActivityIntent = new Intent(getApplicationContext(), MainActivity.class);
-                startActivity(MainActivityIntent);
-                finish();
+            public void onClick(View view) {
+                // 點擊 bioButton 時顯示 bioEditText 和 bioCompleteButton，並隱藏 bioButton
+                bioEditText.setVisibility(View.VISIBLE);
+                bioTextView.setVisibility(view.GONE);
+                BioCompleteButton.setVisibility(View.VISIBLE);
+                BioButton.setVisibility(View.GONE);
+                bioEditText.setText(bioTextView.getText().toString()); // 將原有的 bio 文字設置到 EditText 中
             }
         });
-    }
 
-//    private void queryVideosFromDatabase(String username) {
-//        userRef.child(username).addListenerForSingleValueEvent(new ValueEventListener() {
-//            @Override
-//            public void onDataChange(@NonNull DataSnapshot snapshot) {
-//                if (snapshot.exists()) {
-//                    String uid = snapshot.child("uid").getValue(String.class);
-//                    if (uid != null) {
-//                        queryVideosFromDatabaseByUID(uid);
-//                    } else {
-//                        Toast.makeText(PersonalPage.this, "錯誤", Toast.LENGTH_SHORT).show();
-//                    }
-//                } else {
-//                    Toast.makeText(PersonalPage.this, "錯誤", Toast.LENGTH_SHORT).show();
-//                }
-//            }
-//
-//            @Override
-//            public void onCancelled(@NonNull DatabaseError error) {
-//                Toast.makeText(PersonalPage.this, "錯誤", Toast.LENGTH_SHORT).show();
-//            }
-//        });
-//    }
+        BioCompleteButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                String newBio = bioEditText.getText().toString();
+                if (newBio.length() > 20) {
+                    Toast.makeText(requireContext(), "字數不能超過 20 個字", Toast.LENGTH_SHORT).show();
+                } else {
+                    bioEditText.setVisibility(View.GONE);
+                    BioCompleteButton.setVisibility(View.GONE);
+                    bioTextView.setVisibility(view.VISIBLE);
+                    BioButton.setVisibility(View.VISIBLE);
+                    userRef.child(username).child("bio").setValue(newBio);
+                    bioTextView.setText(newBio);
+                }
+            }
+        });
+        DatabaseReference bioRef = userRef.child(username).child("bio");
 
-//    private void queryVideosFromDatabaseByUID(String uid) {
-//        DatabaseReference videosRef = FirebaseDatabase.getInstance().getReference().child("videos");
-//        videosRef.orderByChild("Uploader").equalTo(uid)
-//                .addValueEventListener(new ValueEventListener() {
-//                    @Override
-//                    public void onDataChange(@NonNull DataSnapshot snapshot) {
-//                        videoList.clear();
-//                        for (DataSnapshot videoSnapshot : snapshot.getChildren()) {
-//                            String videoUrl = videoSnapshot.child("videoUrl").getValue(String.class);
-//                            String title = videoSnapshot.child("title").getValue(String.class);
-//                            String thumbnailUrl = videoSnapshot.child("thumbnailUrl").getValue(String.class);
-//                            VideoMetadata video = new VideoMetadata(title, videoUrl, thumbnailUrl);
-//                            videoList.add(video);
-//                        }
-//                        //videoPreviewAdapter.notifyDataSetChanged();
-//                        Toast.makeText(PersonalPage.this, "成功", Toast.LENGTH_SHORT).show();
-//                    }
-//
-//                    @Override
-//                    public void onCancelled(@NonNull DatabaseError error) {
-//                        Toast.makeText(PersonalPage.this, "錯誤", Toast.LENGTH_SHORT).show();
-//                    }
-//                });
-//    }
+        bioRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                if (snapshot.exists()) {
+                    String bio = snapshot.getValue(String.class);
+                    bioTextView.setText(bio);
+                    bioEditText.setText(bio);
+                } else {
+                    // 如果 bio 数据不存在, 则创建一个新的数据并填入默认值
+                    String defaultBio = "個人檔案";
+                    bioRef.setValue(defaultBio);
+                    bioTextView.setText(defaultBio);
+                    bioEditText.setText(defaultBio);
+                }
+            }
 
-    // VideoPreviewAdapter 和 VideoPreviewViewHolder 類別保持不變
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                // 处理读取失败的情况
+            }
+        });
 
-    private static class VideoMetadata {
-        String title;
-        String videoUrl;
-        String thumbnailUrl;
-
-        public VideoMetadata(String title, String videoUrl, String thumbnailUrl) {
-            this.title = title;
-            this.videoUrl = videoUrl;
-            this.thumbnailUrl = thumbnailUrl;
-        }
+        return view;
     }
 }

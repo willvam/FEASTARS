@@ -65,8 +65,7 @@ public class MainActivity extends AppCompatActivity {
                 startActivity(new Intent(this, upload.class));
                 return true;
             } else if (menuItemId == R.id.account) {
-                startActivity(new Intent(this, PersonalPage.class));
-                //replaceFragment(new PersonalPage());
+                replaceFragment(new PersonalPage());
                 return true;
             }
             return false;

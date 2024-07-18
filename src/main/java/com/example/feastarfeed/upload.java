@@ -52,6 +52,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
@@ -72,6 +73,7 @@ public class upload extends AppCompatActivity {
     DatabaseReference userRef,totalFoodTagRef;
     int imageSize = 224;
     String savevideotag;
+    String newVid;
     private StringBuffer selectedTagsBuffer = new StringBuffer();
 
 
@@ -389,8 +391,32 @@ public class upload extends AppCompatActivity {
         }
     }
     private void uploadvideo(Uri uri){
-        String vid= UUID.randomUUID().toString();
-        StorageReference reference = storageReference.child("Videos/" + vid);
+
+        databaseReference.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                int maxId = 0;
+                for (DataSnapshot childSnapshot : snapshot.getChildren()) {
+                    String videoId = childSnapshot.getKey();
+                    if (videoId != null && videoId.startsWith("V")) {
+                        int id = Integer.parseInt(videoId.substring(1));
+                        maxId = Math.max(maxId, id);
+                    }
+                }
+                String nextVid = "V" + (maxId + 1);
+                // 在這裡可以使用 nextVid 做後續處理，例如將其新增到 Firebase 中
+                // 或者將 nextVid 傳遞給其他方法
+                newVid = nextVid;
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                // 處理錯誤情況
+            }
+        });
+
+        StorageReference reference = storageReference.child("videos/" + newVid);
+
 
         reference.putFile(uri).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
             @Override
@@ -400,7 +426,7 @@ public class upload extends AppCompatActivity {
                     @Override
                     public void onSuccess(Uri downloadUri) {
                         // 將影片 URL 存儲到 Realtime Database 中
-                        DatabaseReference videoRef = databaseReference.child("Videos").child(vid);
+                        DatabaseReference videoRef = databaseReference.child(newVid);
                         DatabaseReference foodtagsRef = videoRef.child("Foodtags");
                         videoRef.child("url").setValue(downloadUri.toString());
 
@@ -426,6 +452,7 @@ public class upload extends AppCompatActivity {
                         videoRef.child("address").setValue(address);
                         videoRef.child("price").setValue(price);
                         videoRef.child("date").setValue(date);
+                        videoRef.child("id").setValue(newVid);
 
                         // 獲取當前使用者的 UID
                         String username = SharedPreferencesUtils.getUsername(upload.this);
@@ -442,7 +469,7 @@ public class upload extends AppCompatActivity {
                                 String nextVideoKey = availableKeys.iterator().next();
                                 availableKeys.remove(nextVideoKey);
                                 DatabaseReference nextVideoRef = ownVideosRef.child(nextVideoKey);
-                                nextVideoRef.setValue(vid);
+                                nextVideoRef.setValue(newVid);
                             }
 
                             @Override
@@ -579,6 +606,9 @@ public class upload extends AppCompatActivity {
 
         // 顯示 DatePickerDialog
         datePickerDialog.show();
+    }
+    private void getNextVideoId(DatabaseReference videoRef) {
+
     }
 
 

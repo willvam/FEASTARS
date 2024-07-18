@@ -33,7 +33,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-public class    HomeFragment extends Fragment {
+public class HomeFragment extends Fragment {
     public List<Video> videoList;
     private List<Video> videoListRE;
     private VideoAdapter adapter;
@@ -41,7 +41,9 @@ public class    HomeFragment extends Fragment {
     private DatabaseReference videosRef;
     private DatabaseReference preferencesRef;
     private List<Video> mergedList;
-    private long id;
+    public long idpass;
+    public long idpass1;
+    private Video currentVideo;
     //public ArrayList<String> id = new ArrayList<>();
     private long nodeCount;
     //private List<Video> mergedList2;
@@ -51,11 +53,16 @@ public class    HomeFragment extends Fragment {
     public static int page;
     private String username;
     Boolean doFav,doTag;
-   // private long id;
+    // private long id;
     public HomeFragment() {
-
     }
+    public interface IdPassCallback {
+        void onIdPassChanged(long idpass);
+    }
+    public IdPassCallback idPassCallback; // 声明一个接口实例变量
+
     private DatabaseReference pDatabase;
+
 
     @SuppressLint("MissingInflatedId")
     @Override
@@ -87,18 +94,19 @@ public class    HomeFragment extends Fragment {
 
             }
         });
-       // id = video.getId();
+
         FragmentManager fragmentManager = getChildFragmentManager();
 
         ////////////取得使用者名稱
         Context context = requireContext();
-         username = SharedPreferencesUtils.getUsername(context);
+        username = SharedPreferencesUtils.getUsername(context);
         Log.d("username", username);
 
         // 使用合併後的 List 創建 VideoAdapter
-        adapter = new VideoAdapter(new ArrayList<>(), videosRef, fragmentManager);
+        adapter = new VideoAdapter(new ArrayList<>(), videosRef, fragmentManager, idPassCallback);
         viewPager2.setAdapter(adapter);
 
+////////////////////////////////////////////////////////////////////////////////////////////////////////////判斷有沒變畫面的地方
         viewPager2.registerOnPageChangeCallback(new ViewPager2.OnPageChangeCallback() {
             private long videoStartTime = 0L; // 记录视频开始播放时间/////////計時
 
@@ -109,31 +117,71 @@ public class    HomeFragment extends Fragment {
                 // 您可以在这里执行任何您想要的操作，例如更新UI、加载数据等
                 Log.d("ViewPager2", "Page selected: " + position);
 
+                // 獲取該 Video 物件的 id
+                currentVideo = mergedList.get(position);
+                //idpass是當前影片的ID
+                idpass = currentVideo.getId();
+                Log.d("idid", String.valueOf(idpass));
+                Log.d("ididp", String.valueOf(position));
+
+////////////// 在这里调用接口回调
+                idPassCallback = new IdPassCallback() {
+                    @Override
+                    public void onIdPassChanged(long idPass) {
+                        if (adapter != null) {
+                            adapter.setIdPass(idpass);
+                        }
+                    }
+                };
+
+                if (idPassCallback != null) {
+                    idPassCallback.onIdPassChanged(idpass);
+                }
+                IdPassCallback idPassCallback = new IdPassCallback() {
+                    @Override
+                    public void onIdPassChanged(long idPass) {
+                        // 在这里更新 VideoAdapter 中的 idpass 值
+                        idPass=idpass;
+                    }
+
+                };
+////////end
                 page = position;
 
 // 当切换到第一个视频时，记录开始播放时间////////////////以下計時
                 if (position == 0) {
                     videoStartTime = System.currentTimeMillis();
+
+                    // 獲取該 Video 物件的 id
+                    currentVideo = mergedList.get(position);
+                    //idpass1世上一部影片的ID
+                    idpass1 = currentVideo.getId();
+                    Log.d("idid", String.valueOf(idpass1));
+                    Log.d("ididp", String.valueOf(position));
+
                 } else {
                     // 当切换到其他视频时，计算上一个视频的播放时间
                     long durationMillis = System.currentTimeMillis() - videoStartTime;
                     long durationSeconds = durationMillis / 1000; // 将毫秒转换为秒
-                    Log.d("VideoPlayTime", "Video played for " + durationSeconds + " seconds");
+                    Log.d("id", "Video played for " + durationSeconds + " seconds");
 
                     // 在這裡添加判斷durationSeconds是否小於3秒的邏輯
                     // 獲取 "tag" 節點的引用
                     pDatabase = database.getReference("Users");
                     //DatabaseReference tagRef = database.getReference("Videos/V1/tag");
-                    ////這邊的position不用+1，和VideoAdapter不一樣
-                    //有問題
-                    DatabaseReference tagRef =database.getReference("Videos").child("V"+(position+1)).child("tag");
+
+                    //會變成用上一部觀看時間判斷當前影片標千
+
+                    DatabaseReference tagRef =database.getReference("Videos").child("V"+idpass1).child("tag");
                     tagRef.addListenerForSingleValueEvent(new ValueEventListener() {
                         @Override
                         public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                             if (dataSnapshot.exists()) {
                                 String value = dataSnapshot.getValue(String.class);//前面有宣告
+                                Log.d("idid", "經過");
+                                Log.d("idid", value);
                                 DatabaseReference preferRef = pDatabase.child(username).child("preferences").child(value);//tag位置
-                                Log.d("tag", "succes");
+
                                 preferRef.addListenerForSingleValueEvent(new ValueEventListener() {
                                     @Override
                                     public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
@@ -172,6 +220,9 @@ public class    HomeFragment extends Fragment {
                     // 重置计时器
                     videoStartTime = System.currentTimeMillis();
 
+                    //idpass1世上一部影片的ID
+                    idpass1 = idpass;
+
 //                    // 获取当前视频对象
 //                    if (adapter != null) {
 //                        Boolean doFav = adapter.getDoFav();
@@ -187,7 +238,7 @@ public class    HomeFragment extends Fragment {
                 }
 
                 if (adapter != null) {
-                    DatabaseReference videoFav = database.getReference("videoCont"+(position+1)).child("doFav");
+                    DatabaseReference videoFav = database.getReference("Users").child(username).child("Cont"+ idpass).child("Fav");
                     videoFav.addListenerForSingleValueEvent(new ValueEventListener() {
                         @Override
                         public void onDataChange(@NonNull DataSnapshot snapshot) {
@@ -201,7 +252,7 @@ public class    HomeFragment extends Fragment {
                         }
                     });
 
-                    DatabaseReference videoTag = database.getReference("videoCont"+(position+1)).child("doTag");
+                    DatabaseReference videoTag = database.getReference("Users").child(username).child("Cont"+ idpass).child("Tag");
                     videoTag.addListenerForSingleValueEvent(new ValueEventListener() {
                         @Override
                         public void onDataChange(@NonNull DataSnapshot snapshot) {
@@ -215,20 +266,11 @@ public class    HomeFragment extends Fragment {
                         }
                     });
 
-                    if (doFav != null && position != 0) {
-                        // 更新数据库中的 doFav 值
-                        videosRef.child("V" + position).child("doFav").setValue(doFav);
-                    }
-                    if (doTag != null && page != 0) {
-                        // 更新数据库中的 doTag 值
-                        videosRef.child("V" + position).child("doTag").setValue(doTag);
-                    }
-
                 }
 
                 tagArrayList = new ArrayList<>();
 
-                DatabaseReference videoFoods = database.getReference("Videos").child("V"+(position+1)).child("tag");
+                DatabaseReference videoFoods = database.getReference("Videos").child("V"+idpass).child("tag");
                 videoFoods.addValueEventListener(new ValueEventListener() {
                     @Override
                     public void onDataChange(@NonNull DataSnapshot snapshot) {
@@ -250,7 +292,7 @@ public class    HomeFragment extends Fragment {
 
                 commentArrayList = new ArrayList<>();
 
-                DatabaseReference videoComments = database.getReference("videoCont"+(position+1)).child("comments");
+                DatabaseReference videoComments = database.getReference("Users").child(username).child("Cont"+ idpass).child("comments");
                 videoComments.addValueEventListener(new ValueEventListener() {
                     @Override
                     public void onDataChange(@NonNull DataSnapshot snapshot) {
@@ -415,6 +457,11 @@ public class    HomeFragment extends Fragment {
         }
 
         Log.d("mergedList", String.valueOf(mergedList.size()));
+        //儲存id
+//        for (Video video : mergedList) {
+//            id = video.getId();
+//
+//        }
 //創建新的 VideoAdapter 實例並設置給 viewPager2
 
         // 在這裡更新 adapter 的數據

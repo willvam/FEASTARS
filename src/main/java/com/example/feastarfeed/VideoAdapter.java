@@ -1,14 +1,12 @@
 package com.example.feastarfeed;
 
 import android.content.Context;
-import android.media.MediaPlayer;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.VideoView;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
@@ -19,7 +17,6 @@ import androidx.viewpager2.widget.ViewPager2;
 
 import com.google.android.exoplayer2.ExoPlayer;
 import com.google.android.exoplayer2.MediaItem;
-import com.google.android.exoplayer2.Player;
 import com.google.android.exoplayer2.source.MediaSource;
 import com.google.android.exoplayer2.source.ProgressiveMediaSource;
 import com.google.android.exoplayer2.ui.PlayerView;
@@ -62,6 +59,10 @@ public class VideoAdapter extends RecyclerView.Adapter<VideoAdapter.VideoViewHol
     boolean tagViewVisible = false;
     private Context context;
     private  String username;
+    private HomeFragment.IdPassCallback idPassCallback;
+    private long idpass;
+
+
 //    private List<SharedPreferencesUtils> userList;
 //
 //    public void UserAdapter(Context context, List<SharedPreferencesUtils> userList) {
@@ -69,14 +70,23 @@ public class VideoAdapter extends RecyclerView.Adapter<VideoAdapter.VideoViewHol
 //        this.userList = userList;
 //    }
 
-    public VideoAdapter(List<Video> VideoList, DatabaseReference videosRef, FragmentManager fragmentManager){
+    public VideoAdapter(List<Video> VideoList, DatabaseReference videosRef, FragmentManager fragmentManager, HomeFragment.IdPassCallback callback){
         this.fragmentManager = fragmentManager;
         this.videoList = VideoList;
         this.videosRef = videosRef;
         mDatabase = database.getReference("Videos");
         pDatabase = database.getReference("Users");
         cmtDatabase = database.getReference("Comments");
-
+        this.idPassCallback = callback;
+    }
+    /////在这里调用接口回调
+    public void setIdPass(long idPass) {
+        this.idpass = idPass;
+        if (idPassCallback != null) {
+            idPassCallback.onIdPassChanged(idpass);
+        }
+        // 在这里根据需要进行相应的操作,比如刷新UI等
+//        notifyDataSetChanged();
     }
 
     @NonNull
@@ -96,7 +106,7 @@ public class VideoAdapter extends RecyclerView.Adapter<VideoAdapter.VideoViewHol
             // 从 ViewHolder.itemView 获取一个非空的 Context
             context = holder.itemView.getContext();
         }
-         username = SharedPreferencesUtils.getUsername(context);
+        username = SharedPreferencesUtils.getUsername(context);
         Log.d("username2", username);
 
 
@@ -108,9 +118,11 @@ public class VideoAdapter extends RecyclerView.Adapter<VideoAdapter.VideoViewHol
             }
         });
 
-        id = video.getId();
+        //id = video.getId();
+
+        Log.d("ididV", String.valueOf(idpass));
         Log.d("位置tag", String.valueOf(id));
-        DatabaseReference videoLike = database.getReference("videoCont"+ id ).child("doFav");
+        DatabaseReference videoLike = database.getReference("Users").child(username).child("Cont"+ idpass).child("Fav");
         videoLike.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
@@ -142,7 +154,7 @@ public class VideoAdapter extends RecyclerView.Adapter<VideoAdapter.VideoViewHol
             }
         });
 
-        DatabaseReference videoTag = database.getReference("videoCont"+ id ).child("doFav");
+        DatabaseReference videoTag = database.getReference("Users" ).child(username).child("Cont"+ idpass).child("Fav");
         videoTag.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
@@ -248,7 +260,7 @@ public class VideoAdapter extends RecyclerView.Adapter<VideoAdapter.VideoViewHol
     }
 
 
-//    public class VideoViewHolder extends RecyclerView.ViewHolder{
+    //    public class VideoViewHolder extends RecyclerView.ViewHolder{
 //        VideoView videoView;
 //
 //        TextView title, address , date ,  price;
@@ -387,22 +399,22 @@ public class VideoAdapter extends RecyclerView.Adapter<VideoAdapter.VideoViewHol
 
         private MediaSource buildMediaSource() {
 
-        // 從 Firebase Storage 獲取視頻的流式傳輸 URL
-        //vurl = "https://firebasestorage.googleapis.com/v0/b/feastars-1861e.appspot.com/o/Videos%2Fa.mp4?alt=media&token=b7067703-908c-4a98-87a2-b01105a9c8f9";
+            // 從 Firebase Storage 獲取視頻的流式傳輸 URL
+            //vurl = "https://firebasestorage.googleapis.com/v0/b/feastars-1861e.appspot.com/o/Videos%2Fa.mp4?alt=media&token=b7067703-908c-4a98-87a2-b01105a9c8f9";
 
-        // 創建 ProgressiveMediaSource 用於播放 MP4 文件
-        ProgressiveMediaSource mediaSource = new ProgressiveMediaSource.Factory(
-                new DefaultHttpDataSource.Factory())
-                .createMediaSource(MediaItem.fromUri(vurl));
+            // 創建 ProgressiveMediaSource 用於播放 MP4 文件
+            ProgressiveMediaSource mediaSource = new ProgressiveMediaSource.Factory(
+                    new DefaultHttpDataSource.Factory())
+                    .createMediaSource(MediaItem.fromUri(vurl));
 
-        return mediaSource;
+            return mediaSource;
         }
     }
 
 
 
     public void toggleDoFav(int position, VideoViewHolder holder) {
-        DatabaseReference videoRef = database.getReference("videoCont"+id).child("doFav");
+        DatabaseReference videoRef = database.getReference("Users").child(username).child("Cont"+ idpass).child("Fav");
         videoRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
@@ -419,7 +431,7 @@ public class VideoAdapter extends RecyclerView.Adapter<VideoAdapter.VideoViewHol
                         //演算法
                         // 獲取 "tag" 節點的引用
 
-                        DatabaseReference tagRef =database.getReference("Videos").child("V"+id).child("tag");
+                        DatabaseReference tagRef =database.getReference("Videos").child("V"+idpass).child("tag");
                         Log.d("tagid", String.valueOf(id));
                         Log.d("tag", String.valueOf(tagRef));
                         tagRef.addListenerForSingleValueEvent(new ValueEventListener() {
@@ -466,7 +478,7 @@ public class VideoAdapter extends RecyclerView.Adapter<VideoAdapter.VideoViewHol
                         //DatabaseReference preferencesRef = pDatabase.child("preferences");
                         // 獲取 "tag" 節點的引用
                         // DatabaseReference tagRef = database.getReference("Videos/V1/tag");
-                        DatabaseReference tagRef =database.getReference("Videos").child("V"+ id ).child("tag");
+                        DatabaseReference tagRef =database.getReference("Videos").child("V"+ idpass ).child("tag");
 
                         tagRef.addListenerForSingleValueEvent(new ValueEventListener() {
                             @Override
@@ -524,7 +536,7 @@ public class VideoAdapter extends RecyclerView.Adapter<VideoAdapter.VideoViewHol
 
     public void toggleDoTag(int position, VideoViewHolder holder) {
 
-        DatabaseReference videoRef = database.getReference("videoCont"+id).child("doTag");
+        DatabaseReference videoRef = database.getReference("Users").child(username).child("Cont"+ idpass).child("Tag");
         videoRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
@@ -538,7 +550,7 @@ public class VideoAdapter extends RecyclerView.Adapter<VideoAdapter.VideoViewHol
                         //演算法
                         // 獲取 "tag" 節點的引用
 
-                        DatabaseReference tagRef =database.getReference("Videos").child("V"+id).child("tag");
+                        DatabaseReference tagRef =database.getReference("Videos").child("V"+idpass).child("tag");
 
                         tagRef.addListenerForSingleValueEvent(new ValueEventListener() {
                             @Override
@@ -583,7 +595,7 @@ public class VideoAdapter extends RecyclerView.Adapter<VideoAdapter.VideoViewHol
                         //DatabaseReference preferencesRef = pDatabase.child("preferences");
                         // 獲取 "tag" 節點的引用
                         // DatabaseReference tagRef = database.getReference("Videos/V1/tag");
-                        DatabaseReference tagRef =database.getReference("Videos").child("V"+id).child("tag");
+                        DatabaseReference tagRef =database.getReference("Videos").child("V"+idpass).child("tag");
 
                         tagRef.addListenerForSingleValueEvent(new ValueEventListener() {
                             @Override

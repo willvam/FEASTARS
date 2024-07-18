@@ -12,6 +12,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical">
+
             <ImageButton
                 android:id="@+id/back_button"
                 android:layout_width="32dp"
@@ -20,6 +21,7 @@
                 android:contentDescription="@string/back"
                 android:padding="8dp"
                 app:srcCompat="@drawable/ic_arrow_back" />
+
             <!-- 個人資訊區塊 -->
             <RelativeLayout
                 android:layout_width="match_parent"
@@ -99,22 +101,48 @@
             </RelativeLayout>
 
             <!-- 個人簡介區塊 -->
-            <TextView
-                android:id="@+id/bio"
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:padding="16dp"
-                android:text="Bio"
-                android:textSize="16sp" />
+                android:orientation="horizontal"
+                android:padding="16dp">
+
+                <EditText
+                    android:id="@+id/bioEditText"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:hint="修改個人簡介"
+                    android:visibility="gone" />
+
+                <Button
+                    android:id="@+id/bioCompleteButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:text="完成"
+                    android:visibility="gone" />
+
+                <TextView
+                    android:id="@+id/bio"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Bio"
+                    android:textSize="16sp" />
+
+                <Button
+                    android:id="@+id/bioButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:text="編輯" />
+
+            </LinearLayout>
 
             <!-- 編輯個人資料按鈕 -->
-            <Button
-                android:id="@+id/edit_profile_button"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center_horizontal"
-                android:text="Edit Profile"
-                android:textSize="16sp" />
+
+
 
             <!-- 分隔線 (中央有文字) -->
             <RelativeLayout
@@ -138,6 +166,7 @@
                     android:textColor="@android:color/black" />
 
             </RelativeLayout>
+
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -177,11 +206,13 @@
                     android:text="刪除帳號" />
 
             </LinearLayout>
+
             <!-- 分隔線 (無文字) -->
             <View
                 android:layout_width="match_parent"
                 android:layout_height="1dp"
                 android:background="@android:color/darker_gray" />
+
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/rvVideoPreview"
                 android:layout_width="match_parent"
