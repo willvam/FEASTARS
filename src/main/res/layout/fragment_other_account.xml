@@ -124,12 +124,7 @@
                     android:text="Bio"
                     android:textSize="16sp" />
 
-                <Button
-                    android:id="@+id/bioButton"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="8dp"
-                    android:text="編輯" />
+
 
             </LinearLayout>
 
@@ -148,15 +143,6 @@
                     android:layout_centerVertical="true"
                     android:background="@android:color/darker_gray" />
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_centerInParent="true"
-                    android:background="@android:color/white"
-                    android:paddingStart="8dp"
-                    android:paddingEnd="8dp"
-                    android:text="其他功能"
-                    android:textColor="@android:color/black" />
 
             </RelativeLayout>
 
@@ -167,36 +153,14 @@
                 android:padding="16dp">
 
                 <Button
-                    android:id="@+id/LuckyWheel"
+                    android:id="@+id/followed"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="用餐推薦" />
+                    android:text="追蹤" />
 
-                <Button
-                    android:id="@+id/Followers"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="8dp"
-                    android:layout_marginEnd="8dp"
-                    android:layout_weight="1"
-                    android:text="追蹤中" />
 
-                <Button
-                    android:id="@+id/logoutbutton"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="8dp"
-                    android:layout_marginEnd="8dp"
-                    android:layout_weight="1"
-                    android:text="登出" />
 
-                <Button
-                    android:id="@+id/deletebutton"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="刪除帳號" />
 
             </LinearLayout>
 

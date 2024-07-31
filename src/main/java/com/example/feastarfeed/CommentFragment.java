@@ -22,11 +22,15 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 public class CommentFragment extends Fragment {
 
     FirebaseDatabase database = FirebaseDatabase.getInstance();
     public ArrayList<Comment> commentArrayList = HomeFragment.commentArrayList;
+
+    public ArrayList<Comment> userArrayList = HomeFragment.userArrayList;
 
     public CommentAdapter commentAdapter;
 
@@ -34,7 +38,7 @@ public class CommentFragment extends Fragment {
 
     RecyclerView recyclerView;
 
-    int page = HomeFragment.page;
+    long page = HomeFragment.idpass1;
 
     public CommentFragment() {
         // Required empty public constructor
@@ -63,39 +67,54 @@ public class CommentFragment extends Fragment {
 
         ImageButton newButton = view.findViewById(R.id.newButton);
 
-        DatabaseReference cmtRef = database.getReference("videoCont"+(page+1)).child("comments");
+        DatabaseReference cmtRef = database.getReference("videoCont"+page);
 
         newButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 String content = contentET.getText().toString().trim();
+                String user = SharedPreferencesUtils.getUsername(requireContext());
                 if (TextUtils.isEmpty(content)) {
                 } else {
                     contentLayout.setError(null);
-                    String commentString = null;
-                    Comment comment = new Comment();
-                    comment.setContent(contentET.getText().toString());
-
-                    cmtRef.push().setValue(comment).addOnSuccessListener(new OnSuccessListener<Void>() {
+                    cmtRef.setValue(user).addOnSuccessListener(new OnSuccessListener<Void>() {
                         @Override
                         public void onSuccess(Void unused) {
                             contentET.setText("");
-                            Toast.makeText(getActivity(), "Comment uploaded successfully!", Toast.LENGTH_SHORT).show();
+                            Log.d("userComment","user : "+user);
                         }
                     }).addOnFailureListener(new OnFailureListener() {
                         @Override
                         public void onFailure(@NonNull Exception e) {
-                            Toast.makeText(getActivity(), "Failed to upload comment!", Toast.LENGTH_SHORT).show();
+                            Log.d("userComment","userFail");
                         }
-
                     });
+                    Map<String, Object> updates = new HashMap<>();
+                    String key1 = "user";
+                    String key2 = "content";
+                    updates.put(key1,user);
+                    updates.put(key2,content);
+                    cmtRef.push().updateChildren(updates)
+                            .addOnSuccessListener(new OnSuccessListener<Void>() {
+                                @Override
+                                public void onSuccess(Void unused) {
+                                    contentET.setText("");
+                                    Toast.makeText(getActivity(), "Comments uploaded successfully!", Toast.LENGTH_SHORT).show();
+                                }
+                            })
+                            .addOnFailureListener(new OnFailureListener() {
+                                @Override
+                                public void onFailure(@NonNull Exception e) {
+                                    Toast.makeText(getActivity(), "Failed to upload comments!", Toast.LENGTH_SHORT).show();
+                                }
+                            });
                 }
             }
         });
 
         if (!commentArrayList.isEmpty()) {
             // 数据不为空时设置Adapter
-            commentAdapter = new CommentAdapter(getContext(), commentArrayList);
+            commentAdapter = new CommentAdapter(getContext(), commentArrayList, userArrayList);
             LinearLayoutManager llm =  new LinearLayoutManager(getContext(),LinearLayoutManager.VERTICAL,false);
             recyclerView.setLayoutManager(llm);
             recyclerView.setAdapter(commentAdapter);

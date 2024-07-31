@@ -1,5 +1,7 @@
 package com.example.feastarfeed;
 
+import static android.content.ContentValues.TAG;
+
 import androidx.activity.result.ActivityResult;
 import androidx.activity.result.ActivityResultCallback;
 import androidx.activity.result.ActivityResultLauncher;
@@ -11,11 +13,12 @@ import android.app.DatePickerDialog;
 import android.content.ClipData;
 import android.content.Intent;
 import android.graphics.Bitmap;
+import android.graphics.drawable.BitmapDrawable;
 import android.media.MediaMetadataRetriever;
 import android.net.Uri;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
-import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.DatePicker;
 import android.widget.EditText;
@@ -26,12 +29,21 @@ import android.widget.TextView;
 import com.example.feastarfeed.ml.ModelUnquant;
 import org.tensorflow.lite.DataType;
 import org.tensorflow.lite.support.tensorbuffer.TensorBuffer;
+
+import com.google.android.gms.common.api.Status;
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.libraries.places.api.Places;
+import com.google.android.libraries.places.api.model.Place;
+import com.google.android.libraries.places.api.model.RectangularBounds;
+import com.google.android.libraries.places.widget.AutocompleteSupportFragment;
+import com.google.android.libraries.places.widget.listener.PlaceSelectionListener;
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.progressindicator.LinearProgressIndicator;
 import com.google.firebase.FirebaseApp;
-
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.ValueEventListener;
@@ -39,9 +51,13 @@ import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.OnProgressListener;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
+
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;;
+import java.text.SimpleDateFormat;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -52,28 +68,34 @@ import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.UUID;
-import java.util.concurrent.atomic.AtomicInteger;
+
 
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
 
-public class upload extends AppCompatActivity {
+public class upload extends AppCompatActivity{
     StorageReference storageReference;
     LinearProgressIndicator progressIndicator;
     Uri video;
-    Button uploadvideo,selectvideo,selectphoto;
-    private ImageButton Back_button;
+    TextView uploadvideo,selectvideo,selectphoto;
+    ImageButton Back_button;
     ImageView videopreview;
-    EditText titleEditText,addressEditText,priceEditText,selectedDateEditText;
-
-    TextView foodTagsEditText,foodclass,selectedDateText,foodTagsText,titleText,priceText,addressText;
+    EditText titleEditText,addressEditText,priceEditText,descriptionEditText;
+    TextView foodTagsEditText,foodclass,selectedDateEditText;
     DatePicker datePicker;
     private DatabaseReference databaseReference;
     DatabaseReference userRef,totalFoodTagRef;
     int imageSize = 224;
-    String savevideotag;
-    String newVid;
+
+    String newVid,newcont;
+    long longvid;
+
+    private AutocompleteSupportFragment autoCompleteFragment;
+
+    FusedLocationProviderClient fusedLocationProviderClient;
+
+    String placeName,placeAddress;
     private StringBuffer selectedTagsBuffer = new StringBuffer();
 
 
@@ -83,7 +105,7 @@ public class upload extends AppCompatActivity {
 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.fragment_add);
-        databaseReference = FirebaseDatabase.getInstance().getReference("videos");
+        databaseReference = FirebaseDatabase.getInstance().getReference("Videos");
         totalFoodTagRef = FirebaseDatabase.getInstance().getReference("totalfoodtag");//全部的TAg
         userRef = FirebaseDatabase.getInstance().getReference("Users");
 
@@ -105,13 +127,51 @@ public class upload extends AppCompatActivity {
         priceEditText = findViewById(R.id.priceEditText);
         addressEditText = findViewById(R.id.addressEditText);
         selectedDateEditText = findViewById(R.id.selectedDateEditText);
+        descriptionEditText = findViewById(R.id.descriptionEditText);
+
+        Locale locale = new Locale("zh", "TW");
+        Locale.setDefault(locale);
+
+        autoCompleteFragment = (AutocompleteSupportFragment)
+                getSupportFragmentManager().findFragmentById(R.id.autoCompleteFragment);
+
+        Places.initialize(this.getApplicationContext(), "AIzaSyBJiZZZVX1857CpQvpsGUKpyOdmvHkJW3o", locale);
+
+        fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
+
+        RectangularBounds bounds = RectangularBounds.newInstance(
+                // 設置搜索範圍的邊界
+                new LatLng(21.892000, 119.560000),
+                new LatLng(25.305000, 122.008000)
+        );
+
+        autoCompleteFragment.setLocationBias(bounds);
+
+        autoCompleteFragment.setPlaceFields(Arrays.asList(Place.Field.ID, Place.Field.NAME, Place.Field.LAT_LNG, Place.Field.ADDRESS));
+
+        autoCompleteFragment.setOnPlaceSelectedListener(new PlaceSelectionListener() {
+            @Override
+            public void onPlaceSelected(@NonNull Place place) {
+                // TODO: Get info about the selected place.
+                Log.i(TAG, "Place: " + place.getName() + ", " + place.getId());
+                //LatLng latLng = place.getLatLng();
+                placeName = place.getName();
+                placeAddress = place.getAddress();
+                titleEditText.setText(placeName);
+                addressEditText.setText(placeAddress);
+            }
+
+
+            @Override
+            public void onError(@NonNull Status status) {
+                // TODO: Handle the error.
+                Log.i(TAG, "An error occurred: " + status);
+            }
+        });
+
+
         Back_button = findViewById(R.id.back_button);
 
-        foodTagsText = findViewById(R.id.foodTagsText);
-        titleText = findViewById(R.id.titleText);
-        priceText = findViewById(R.id.priceText);
-        addressText = findViewById(R.id.addressText);
-        selectedDateText = findViewById(R.id.selectedDateText);
         datePicker = findViewById(R.id.datePicker);
 
         selectvideo.setOnClickListener(new View.OnClickListener(){
@@ -161,6 +221,7 @@ public class upload extends AppCompatActivity {
             @Override
             public void onClick(View view){
                 Intent MainActivityIntent = new Intent(getApplicationContext(), MainActivity.class);
+                SharedPreferencesUtils.clearVideotag(upload.this);
                 startActivity(MainActivityIntent);
                 finish();
             }
@@ -231,6 +292,9 @@ public class upload extends AppCompatActivity {
                         Bitmap image = null;
                         Bitmap image2 = null;//
                         Bitmap image3 = null;//
+                        Bitmap image4 = null;
+                        Bitmap image5 = null;
+                        Bitmap image6 = null;
 
                         uploadvideo.setEnabled(true);
                         video = selectedfile;
@@ -241,21 +305,33 @@ public class upload extends AppCompatActivity {
                         videopreview.setImageBitmap(bitmap);
                         //這裡要不要讓他可以看整個影片，不要只是第一幀?
 
-                        image = retriever.getFrameAtTime(5 * 1000000, MediaMetadataRetriever.OPTION_CLOSEST_SYNC);//第一張
-                        image2 = retriever.getFrameAtTime(10 * 1000000, MediaMetadataRetriever.OPTION_CLOSEST_SYNC);//第二張
-                        image3 = retriever.getFrameAtTime(15 * 1000000, MediaMetadataRetriever.OPTION_CLOSEST_SYNC);//第三張
+                        image = retriever.getFrameAtTime(5 * 1000000, MediaMetadataRetriever.OPTION_CLOSEST_SYNC);//第一張在第5秒
+                        image2 = retriever.getFrameAtTime(10 * 1000000, MediaMetadataRetriever.OPTION_CLOSEST_SYNC);//第二張在第10秒
+                        image3 = retriever.getFrameAtTime(15 * 1000000, MediaMetadataRetriever.OPTION_CLOSEST_SYNC);//第三張在第15秒
+                        image4 = retriever.getFrameAtTime(20 * 1000000, MediaMetadataRetriever.OPTION_CLOSEST_SYNC);
+                        image5 = retriever.getFrameAtTime(25 * 1000000, MediaMetadataRetriever.OPTION_CLOSEST_SYNC);
+                        image6 = retriever.getFrameAtTime(30 * 1000000, MediaMetadataRetriever.OPTION_CLOSEST_SYNC);
 
                         image = Bitmap.createScaledBitmap(image, imageSize, imageSize, false);
                         image2 = Bitmap.createScaledBitmap(image2, imageSize, imageSize, false);
                         image3 = Bitmap.createScaledBitmap(image3, imageSize, imageSize, false);
+                        image4 = Bitmap.createScaledBitmap(image4, imageSize, imageSize, false);
+                        image5 = Bitmap.createScaledBitmap(image5, imageSize, imageSize, false);
+                        image6 = Bitmap.createScaledBitmap(image6, imageSize, imageSize, false);
 
-                        String[] resultdachi = new String[3];
+                        String[] resultdachi = new String[6];
                         classifyImage(image);//辨識
                         resultdachi[0] = (String) foodclass.getText();
                         classifyImage(image2);//
                         resultdachi[1] = (String) foodclass.getText();
                         classifyImage(image3);//
                         resultdachi[2] = (String) foodclass.getText();
+                        classifyImage(image4);//辨識
+                        resultdachi[3] = (String) foodclass.getText();
+                        classifyImage(image5);//辨識
+                        resultdachi[4] = (String) foodclass.getText();
+                        classifyImage(image6);//辨識
+                        resultdachi[5] = (String) foodclass.getText();
                         //textView.setText(resultdachi[0]+","+resultdachi[1]+","+resultdachi[2]);
 
                         // 使用 HashMap 來計算 resultdachi 中每個元素出現的次數
@@ -294,6 +370,7 @@ public class upload extends AppCompatActivity {
                         } catch (IOException e) {
                             throw new RuntimeException(e);
                         }
+                        setCurrentDate();
                     }
 
                 } else if (result.getData().getClipData() != null) {
@@ -404,9 +481,12 @@ public class upload extends AppCompatActivity {
                     }
                 }
                 String nextVid = "V" + (maxId + 1);
+                String nextVideocont = "Cont"+(maxId + 1);
                 // 在這裡可以使用 nextVid 做後續處理，例如將其新增到 Firebase 中
                 // 或者將 nextVid 傳遞給其他方法
-                newVid = nextVid;
+                newVid = nextVid;  //影片編號
+                newcont = nextVideocont;
+                longvid = maxId+1;
             }
 
             @Override
@@ -415,31 +495,31 @@ public class upload extends AppCompatActivity {
             }
         });
 
-        StorageReference reference = storageReference.child("videos/" + newVid);
-
+        String randomName = UUID.randomUUID().toString();
+        StorageReference storageRef = FirebaseStorage.getInstance().getReference();
+        StorageReference reference = storageRef.child("Videos/").child(randomName);
 
         reference.putFile(uri).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
             @Override
             public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
                 // 上傳成功後，獲取影片的下載 URL
-                reference.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
+                taskSnapshot.getStorage().getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
                     @Override
                     public void onSuccess(Uri downloadUri) {
                         // 將影片 URL 存儲到 Realtime Database 中
                         DatabaseReference videoRef = databaseReference.child(newVid);
                         DatabaseReference foodtagsRef = videoRef.child("Foodtags");
-                        videoRef.child("url").setValue(downloadUri.toString());
+                        videoRef.child("videoUrl").setValue(downloadUri.toString());
 
                         // 獲取並解析食物標籤
-                        //EditText foodTagEditText = findViewById(R.id.foodTagsEditText);
                         String foodTags = foodTagsEditText.getText().toString();
                         String[] tagsArray = foodTags.split("[,，]");
                         // 獲取影片資訊
                         String title = titleEditText.getText().toString();
                         String address = addressEditText.getText().toString();
                         String price = priceEditText.getText().toString();
-                        String date = selectedDateEditText.getText().toString();; // 獲取日期的毫秒值
-
+                        String date = selectedDateEditText.getText().toString(); // 獲取日期的毫秒值
+                        String desc = descriptionEditText.getText().toString();
                         // 將食物標籤存儲到 Realtime Database 中
                         int count = 1;
                         for (String tag : tagsArray) {
@@ -447,29 +527,58 @@ public class upload extends AppCompatActivity {
                             foodtagsRef.child(key).setValue(tag.trim());
                             count++;
                         }
+                        //這邊是上傳在Video裡面的東西
                         //videoRef.child("url").setValue(downloadUri.toString());
                         videoRef.child("title").setValue(title);
                         videoRef.child("address").setValue(address);
-                        videoRef.child("price").setValue(price);
+                        videoRef.child("price").setValue("$"+price);
                         videoRef.child("date").setValue(date);
-                        videoRef.child("id").setValue(newVid);
+                        videoRef.child("id").setValue(longvid);
+                        videoRef.child("desc").setValue(desc);
+                        videoRef.child("comment");
+                        videoRef.child("videoPic").setValue(""); //這個給黃建成寫
 
-                        // 獲取當前使用者的 UID
+
+                        Bitmap bitmap = ((BitmapDrawable)videopreview.getDrawable()).getBitmap();
+
+                        // 上傳 Bitmap 到 Firebase Storage
+                        StorageReference picReference = storageReference.child("videopics/" + newVid + ".jpg");
+                        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                        bitmap.compress(Bitmap.CompressFormat.JPEG, 100, baos);
+                        byte[] data = baos.toByteArray();
+                        UploadTask uploadTask = picReference.putBytes(data);
+                        uploadTask.addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+                            @Override
+                            public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+                                picReference.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
+                                    @Override
+                                    public void onSuccess(Uri uri) {
+                                        videoRef.child("videoPic").setValue(uri.toString());
+                                    }
+                                });
+                            }
+                        });
+
+
                         String username = SharedPreferencesUtils.getUsername(upload.this);
-                        // 將上傳者的 UID 存儲到 Realtime Database 中
                         videoRef.child("Uploader").setValue(username);
 
                         //上傳者的個人檔案出現上傳影片的vid
-                        DatabaseReference userRef = FirebaseDatabase.getInstance().getReference().child("Users").child(username); // 獲取當前用戶節點的引用                        ownVideosRef.push().setValue(vid);
-                        DatabaseReference ownVideosRef = userRef.child("ownVideos");
-                        ownVideosRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                        DatabaseReference userRef = FirebaseDatabase.getInstance().getReference().child("Users").child(username);
+                        DatabaseReference newVideoRef = userRef.child("ownVideos").child(newVid);
+                        newVideoRef.child("videoUrl").setValue(downloadUri.toString());
+                        newVideoRef.child("videoPic").setValue(""); //這個給黃建成寫
+                        //所有使用者增加cont
+                        DatabaseReference usersRef = FirebaseDatabase.getInstance().getReference().child("Users");
+                        usersRef.addListenerForSingleValueEvent(new ValueEventListener() {
                             @Override
                             public void onDataChange(@NonNull DataSnapshot snapshot) {
-                                initAvailableKeys(snapshot);
-                                String nextVideoKey = availableKeys.iterator().next();
-                                availableKeys.remove(nextVideoKey);
-                                DatabaseReference nextVideoRef = ownVideosRef.child(nextVideoKey);
-                                nextVideoRef.setValue(newVid);
+                                for (DataSnapshot userSnapshot : snapshot.getChildren()) {
+                                    String userId = userSnapshot.getKey();
+                                    DatabaseReference userContRef = usersRef.child(userId).child(newcont);
+                                    userContRef.child("Fav").setValue(false);
+                                    userContRef.child("Tag").setValue(false);
+                                }
                             }
 
                             @Override
@@ -480,8 +589,9 @@ public class upload extends AppCompatActivity {
                         Toast.makeText(upload.this,"Video uploaded successful!",Toast.LENGTH_SHORT).show();
                         SharedPreferencesUtils.clearVideotag(upload.this);
                         Intent intent = new Intent(getApplicationContext(), MainActivity.class);
+                        intent.putExtra("RELOAD_HOME_FRAGMENT", true);
                         startActivity(intent);
-                        //finish();
+                        finish();
                     }
                 });
             }
@@ -607,9 +717,17 @@ public class upload extends AppCompatActivity {
         // 顯示 DatePickerDialog
         datePickerDialog.show();
     }
+    private void setCurrentDate() {
+        // 获取当前日期
+        Calendar calendar = Calendar.getInstance();
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd", Locale.getDefault());
+        String currentDate = sdf.format(calendar.getTime());
+
+        // 将当前日期设置到 selectedDateEditText
+        selectedDateEditText.setText(currentDate);
+    }
+
     private void getNextVideoId(DatabaseReference videoRef) {
 
     }
-
-
 }

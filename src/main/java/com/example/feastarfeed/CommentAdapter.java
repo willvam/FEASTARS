@@ -29,11 +29,13 @@ import java.util.Objects;
 public class CommentAdapter extends RecyclerView.Adapter<CommentAdapter.ViewHolder> {
     Context context;
     ArrayList<Comment> arrayList;
+    ArrayList<Comment> userList;
     OnItemClickListener onItemClickListener;
 
-    public CommentAdapter(Context context, ArrayList<Comment> arrayList) {
+    public CommentAdapter(Context context, ArrayList<Comment> arrayList, ArrayList<Comment> userList) {
         this.context = context;
         this.arrayList = arrayList;
+        this.userList = userList;
     }
 
     @NonNull
@@ -46,7 +48,11 @@ public class CommentAdapter extends RecyclerView.Adapter<CommentAdapter.ViewHold
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         holder.comment.setText(arrayList.get(position).getContent());
-        //holder.itemView.setOnClickListener(view -> onItemClickListener.onClick(arrayList.get(position)));
+        if (userList != null && userList.size() > position) {
+            holder.user.setText(userList.get(position).getUser());
+        } else {
+            holder.user.setText("Unknown User");
+        }
     }
 
     @Override
@@ -55,10 +61,11 @@ public class CommentAdapter extends RecyclerView.Adapter<CommentAdapter.ViewHold
     }
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
-        TextView comment;
+        TextView comment, user;
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
             comment = itemView.findViewById(R.id.list_item_title);
+            user = itemView.findViewById(R.id.list_item_User);
         }
     }
 

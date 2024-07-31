@@ -1,35 +1,22 @@
 package com.example.feastarfeed;
 
-import static android.content.ContentValues.TAG;
+import android.os.Bundle;
+import android.util.Log;
 
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.FragmentManager;
 import androidx.viewpager2.widget.ViewPager2;
 
-import android.annotation.SuppressLint;
-import android.os.Bundle;
-import android.util.Log;
-
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.ValueEventListener;
 
-import java.util.ArrayList;
 import java.util.List;
 
-public class SearchVideoActivity extends AppCompatActivity {
-
-    private List<Video> videoList;
+public class OthersAccountVideoActivity extends AppCompatActivity {
 
     private VideoAdapter adapter;
     FirebaseDatabase database = FirebaseDatabase.getInstance();
-
     DatabaseReference videosRef = database.getReference("Videos");
-
-    String placeTitle = SearchFragment.placeName;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -38,7 +25,10 @@ public class SearchVideoActivity extends AppCompatActivity {
         ViewPager2 viewPager2 = findViewById(R.id.viewPager);
         FragmentManager fragmentManager = getSupportFragmentManager();
 
-        videoList = new ArrayList<>();
+        // 从OthersAccountFragment中获取视频列表
+        List<Video> videoList = OthersAccountFragment.videoList;
+
+        Log.d("OthersAccount", "videoList: " + videoList);
         adapter = new VideoAdapter(videoList, videosRef, fragmentManager, null);
         viewPager2.setAdapter(adapter);
         viewPager2.registerOnPageChangeCallback(new ViewPager2.OnPageChangeCallback() {
@@ -66,42 +56,6 @@ public class SearchVideoActivity extends AppCompatActivity {
                     }
                 }
             }
-        });
-
-        loadVideosFromFirebase();
-    }
-
-    public void loadVideosFromFirebase() {
-        videosRef.addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                videoList.clear();
-                for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
-
-                    String title = snapshot.child("title").getValue(String.class);
-                    String address = snapshot.child("address").getValue(String.class);
-                    String date = snapshot.child("date").getValue(String.class);
-                    String price = snapshot.child("price").getValue(String.class);
-                    String videoUrl = snapshot.child("videoUrl").getValue(String.class);
-                    Long id = snapshot.child("id").getValue(Long.class);
-                    String uploader = snapshot.child("Uploader").getValue(String.class);
-
-                    if (title.equals(placeTitle)){
-                        Log.d("SearchVideo","placeName:"+ placeTitle);
-                        Video video = new Video(videoUrl,title, address, date, price, id,uploader);
-                        videoList.add(video);
-                    }
-                }
-                adapter.notifyDataSetChanged();
-
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError error) {
-                Log.e(TAG, "Failed to read value.", error.toException());
-            }
-
-
         });
     }
 }

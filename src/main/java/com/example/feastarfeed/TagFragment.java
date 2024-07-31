@@ -1,6 +1,7 @@
 package com.example.feastarfeed;
 
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -16,6 +17,12 @@ public class TagFragment extends Fragment {
     TagAdapter tagAdapter;
     ArrayList<Tag> tagArrayList = HomeFragment.tagArrayList ;
 
+    private OnCountChangeListener onCountChangeListener;
+
+    public static int count;
+
+    public static String text;
+
     public TagFragment() {
         // Required empty public constructor
     }
@@ -23,7 +30,7 @@ public class TagFragment extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
+        count = 0;
     }
 
     @Override
@@ -35,10 +42,34 @@ public class TagFragment extends Fragment {
         RecyclerView recyclerView = view.findViewById(R.id.recyclerViewTag);
 
         tagAdapter = new TagAdapter(getContext(),tagArrayList);
-        recyclerView.setLayoutManager(new GridLayoutManager(getContext(),4));
+        tagAdapter.setOnTagClickListener(this::onTagClick);
+        recyclerView.setLayoutManager(new GridLayoutManager(getContext(),3));
         recyclerView.setAdapter(tagAdapter);
+
+        if (getActivity() != null && getActivity() instanceof OnCountChangeListener) {
+            setOnCountChangeListener((OnCountChangeListener) getActivity());
+        } else {
+            throw new IllegalStateException("Activity must implement OnCountChangeListener");
+        }
         return view;
     }
 
+    public void onTagClick(String tag){
+        count = 1;
+        text = tag;
+        if (onCountChangeListener != null) {
+            onCountChangeListener.onCountChanged(count,tag);
+        }
+        Log.d("tagFragment","tag = "+tag);
+        Log.d("tagFragment","count = "+count);
+    }
+
+    public interface OnCountChangeListener {
+        void onCountChanged(int count, String tag);
+    }
+
+    public void setOnCountChangeListener(OnCountChangeListener listener) {
+        this.onCountChangeListener = listener;
+    }
 
 }

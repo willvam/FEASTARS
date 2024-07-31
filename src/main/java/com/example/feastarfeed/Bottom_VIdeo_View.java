@@ -3,12 +3,14 @@ package com.example.feastarfeed;
 import static android.content.ContentValues.TAG;
 
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
@@ -31,10 +33,8 @@ public class Bottom_VIdeo_View extends Fragment {
 
     RecyclerviewAdapter adapter;
 
-    CharSequence placeName = SearchFragment.placeName;
-    CharSequence placeAddress = SearchFragment.placeAddress;
-
-    ArrayList<String> nameArraylist = SearchFragment.nameArraylist;
+    String placeName = SearchFragment.placeName;
+    String placeAddress = SearchFragment.placeAddress;
 
     public Bottom_VIdeo_View() {
         // Required empty public constructor
@@ -50,9 +50,48 @@ public class Bottom_VIdeo_View extends Fragment {
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         View view = inflater.inflate(R.layout.fragment_bottom_video_view, container, false);
-
         TextView name = view.findViewById(R.id.text);
         TextView address = view.findViewById(R.id.text1);
+
+        name.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // 创建 Uri 对象，传递地址信息
+                Uri gmmIntentUri = Uri.parse("geo:0,0?q=" + Uri.encode(placeName));
+                // 创建 Intent 对象，设置动作为 VIEW，设置数据为 Uri 地址
+                Intent mapIntent = new Intent(Intent.ACTION_VIEW, gmmIntentUri);
+                // 设置 Intent 的包名为 Google 地图应用程序的包名
+                mapIntent.setPackage("com.google.android.apps.maps");
+                // 检查设备上是否安装了 Google 地图应用程序
+                if (mapIntent.resolveActivity(getActivity().getPackageManager()) != null) {
+                    // 如果安装了 Google 地图应用程序，则启动该应用程序
+                    startActivity(mapIntent);
+                } else {
+                    // 如果设备上没有安装 Google 地图应用程序，则显示提示信息
+                    Toast.makeText(getContext(), "未安装 Google 地图应用程序", Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
+
+        address.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // 创建 Uri 对象，传递地址信息
+                Uri gmmIntentUri = Uri.parse("geo:0,0?q=" + Uri.encode(placeName));
+                // 创建 Intent 对象，设置动作为 VIEW，设置数据为 Uri 地址
+                Intent mapIntent = new Intent(Intent.ACTION_VIEW, gmmIntentUri);
+                // 设置 Intent 的包名为 Google 地图应用程序的包名
+                mapIntent.setPackage("com.google.android.apps.maps");
+                // 检查设备上是否安装了 Google 地图应用程序
+                if (mapIntent.resolveActivity(getActivity().getPackageManager()) != null) {
+                    // 如果安装了 Google 地图应用程序，则启动该应用程序
+                    startActivity(mapIntent);
+                } else {
+                    // 如果设备上没有安装 Google 地图应用程序，则显示提示信息
+                    Toast.makeText(getContext(), "未安装 Google 地图应用程序", Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
 
         name.setText(placeName);
         address.setText(placeAddress);
@@ -79,11 +118,11 @@ public class Bottom_VIdeo_View extends Fragment {
                     Log.d("BottomView", "Pic path: " + videoPic); // 添加日志输出
                     String videoName = snapshot.child("title").getValue(String.class);
                     Log.d("BottomView", "VideoName: " + videoName);
-//                    if (videoName.equals(placeName1)){
-//                        Log.d("BottomView","placeName:"+ placeName1);
-//                        previewArrayList.add(videoPic);
-//                        Log.d("BottomView", "PicList : " + previewArrayList);
-//                    }
+                    if (videoName.equals(placeName)){
+                        Log.d("BottomView","placeName:"+ placeName);
+                        previewArrayList.add(videoPic);
+                        Log.d("BottomView", "PicList : " + previewArrayList);
+                    }
                 }
                 adapter.notifyDataSetChanged();
 

@@ -98,10 +98,11 @@ public class login extends AppCompatActivity {
                             Toast.makeText(getApplicationContext(), "Login successful", Toast.LENGTH_SHORT).show();
 
                             // 傳遞 currentUserUsername 給 PersonalPage
-                            Intent personalPageIntent = new Intent(getApplicationContext(), PersonalPage.class);
-                            personalPageIntent.putExtra("currentUserUsername", username);
-                            personalPageIntent.putExtra("currentUserUsername2", username2);
-                            startActivity(personalPageIntent);
+                            AccountFragment accountFragment = new AccountFragment();
+                            Bundle bundle = new Bundle();
+                            bundle.putString("currentUserUsername",username);
+                            bundle.putString("currentUserUsername2",username2);
+                            accountFragment.setArguments(bundle);
 
                             // 傳遞 currentUserUsername 給 upload
                             Intent uploadIntent = new Intent(getApplicationContext(), upload.class);
@@ -177,9 +178,10 @@ public class login extends AppCompatActivity {
                     Toast.makeText(getApplicationContext(), "Auto Login successful", Toast.LENGTH_SHORT).show();
                     // 传递 currentUserUsername 给 PersonalPage
 
-                    Intent personalPageIntent = new Intent(getApplicationContext(), PersonalPage.class);
-                    personalPageIntent.putExtra("currentUserUsername", username);
-                    startActivity(personalPageIntent);
+                    AccountFragment accountFragment = new AccountFragment();
+                    Bundle bundle = new Bundle();
+                    bundle.putString("currentUserUsername",username);
+                    accountFragment.setArguments(bundle);
 
                     // 傳遞 currentUserEmail 給 MainActivity
                     Intent mainActivityIntent = new Intent(getApplicationContext(), MainActivity.class);

@@ -16,19 +16,20 @@
         <com.google.android.material.appbar.MaterialToolbar
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:background="?attr/colorPrimary"
+            android:layout_height="5dp"
+            android:background="#FFFFFF"
             app:titleTextColor="?attr/colorSurface"
             />
 
         <ImageButton
             android:id="@+id/back_button"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
+            android:layout_width="60dp"
+            android:layout_height="60dp"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="@string/back"
-            android:padding="8dp"
-            app:srcCompat="@drawable/ic_arrow_back" />
+            android:layout_marginHorizontal="8dp"
+            android:layout_marginVertical="8dp"
+            app:srcCompat="@drawable/baseline_arrow_circle_left_100" />
 
 
         <com.google.android.material.progressindicator.LinearProgressIndicator
@@ -39,135 +40,372 @@
 
         <ImageView
             android:id="@+id/vediopreview"
-            android:layout_width="300dp"
-            android:layout_height="300dp"
+            android:layout_width="260dp"
+            android:layout_height="260dp"
             android:layout_gravity="center"
-            android:layout_marginTop="20dp" />
+            android:layout_marginVertical="10dp"
+            android:background="@drawable/baseline_add_box_300"/>
 
-        <Button
-            android:id="@+id/uploadvideo"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center_horizontal"
-            android:enabled="false"
-            android:text="uploadvideo" />
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginTop="10dp">
 
-        <Button
-            android:id="@+id/selectvideo"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:enabled="true"
-            android:layout_gravity="center_horizontal"
-            android:text="selectvideo" />
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:layout_width="120dp"
+                android:layout_height="wrap_content"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toStartOf="@id/uploadV"
+                android:background="@drawable/button_popup"
+                android:padding="15sp"
+                android:id="@+id/selectV">
 
-        <Button
-            android:id="@+id/selectphoto"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:enabled="false"
-            android:layout_gravity="center_horizontal"
-            android:text="selectphoto" />
+                <ImageView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toStartOf="@id/selectvideo"
+                    android:src="@drawable/video_select"
+                    android:id="@+id/selectImg"
+                    android:layout_marginRight="2dp"/>
 
-        <TextView
-            android:id="@+id/foodclass"
+                <TextView
+                    android:id="@+id/selectvideo"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:enabled="true"
+                    android:text="Select"
+                    android:textStyle="bold"
+                    android:textSize="16sp"
+                    android:textColor="#FFFFFF"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toEndOf="@id/selectImg"
+                    app:layout_constraintTop_toTopOf="parent"
+                    android:textAlignment="center"
+                    android:layout_marginEnd="4dp"/>
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:layout_width="120dp"
+                android:layout_height="wrap_content"
+                app:layout_constraintStart_toEndOf="@id/selectV"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toStartOf="@id/selectP"
+                android:background="@drawable/button_popup"
+                android:padding="15sp"
+                android:id="@+id/uploadV">
+
+                <ImageView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toStartOf="@id/uploadvideo"
+                    android:src="@drawable/baseline_upload_24"
+                    android:id="@+id/uploadImg"/>
+                <TextView
+                    android:id="@+id/uploadvideo"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:enabled="true"
+                    android:text="Upload"
+                    android:textStyle="bold"
+                    android:textSize="16sp"
+                    android:textColor="#FFFFFF"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toEndOf="@id/uploadImg"
+                    app:layout_constraintTop_toTopOf="parent"
+                    android:textAlignment="center"
+                    android:layout_marginRight="6dp"/>
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:layout_width="120dp"
+                android:layout_height="wrap_content"
+                app:layout_constraintStart_toEndOf="@id/uploadV"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                android:background="@drawable/button_popup"
+                android:id="@+id/selectP"
+                android:padding="15sp">
+
+                <ImageView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toStartOf="@id/selectphoto"
+                    android:src="@drawable/photo_select"
+                    android:id="@+id/photoImg"
+                    android:layout_marginRight="2dp"/>
+
+                <TextView
+                    android:id="@+id/selectphoto"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:enabled="true"
+                    android:text="Photo"
+                    android:textStyle="bold"
+                    android:textSize="16sp"
+                    android:textColor="#FFFFFF"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toEndOf="@id/photoImg"
+                    app:layout_constraintTop_toTopOf="parent"
+                    android:textAlignment="center"
+                    android:layout_marginEnd="4dp" />
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+        <androidx.cardview.widget.CardView
+            android:id="@+id/cardView"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:elevation="10dp"
+            android:iconifiedByDefault="false"
+            app:cardCornerRadius="5dp"
+            android:layout_marginHorizontal="10dp"
+            android:layout_marginTop="15dp">
+
+            <fragment
+                android:id="@+id/autoCompleteFragment"
+                android:name="com.google.android.libraries.places.widget.AutocompleteSupportFragment"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent" />
+        </androidx.cardview.widget.CardView>
+
+        <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="TextView"
-            android:visibility="invisible"/>
+            android:layout_marginTop="10dp">
 
-        <TextView
-            android:id="@+id/foodTagsText"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="食物標籤:"
-            android:textStyle="bold" />
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toStartOf="@id/titleEditText"
+                android:src="@drawable/store"
+                android:id="@+id/storeImg"
+                android:layout_marginHorizontal="2dp" />
 
-        <TextView
-            android:id="@+id/foodTagsEditText"
+            <EditText
+                android:id="@+id/titleEditText"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintStart_toEndOf="@id/storeImg"
+                android:textColor="@android:color/black"
+                android:textSize="20sp"
+                android:padding="8dp"
+                android:textStyle="bold"
+                android:hint="店家名稱"
+                android:background="@drawable/edit_text_background"
+                android:layout_marginRight="10dp" />
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+        <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="輸入食物標籤(多個標籤使用逗號區隔)"
-            android:background="@drawable/edit_text_background"
-            android:textColor="@android:color/black"
-            android:textSize="16sp"
-            android:padding="8dp" />
+            android:layout_marginTop="10dp">
 
-        <TextView
-            android:id="@+id/titleText"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="影片標題:"
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toStartOf="@id/addressEditText"
+                android:src="@drawable/address"
+                android:id="@+id/addressImg"
+                android:layout_marginHorizontal="2dp" />
 
-            android:textStyle="bold" />
+            <EditText
+                android:id="@+id/addressEditText"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:hint="店家地址"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintStart_toEndOf="@id/addressImg"
+                android:background="@drawable/edit_text_background"
+                android:textColor="@android:color/black"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                android:padding="8dp"
+                android:layout_marginRight="10dp"/>
 
-        <EditText
-            android:id="@+id/titleEditText"
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+        <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="@drawable/edit_text_background"
-            android:textColor="@android:color/black"
-            android:textSize="16sp"
-            android:padding="8dp"
-            android:hint="輸入影片標題" />
+            android:layout_marginTop="10dp">
 
-        <TextView
-            android:id="@+id/addressText"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="地址:"
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toStartOf="@id/foodTagsEditText"
+                android:src="@drawable/tag"
+                android:id="@+id/tagImg"
+                android:layout_marginHorizontal="2dp" />
 
-            android:textStyle="bold" />
+            <TextView
+                android:id="@+id/foodTagsEditText"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:hint="食物標籤"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintStart_toEndOf="@id/tagImg"
+                android:background="@drawable/edit_text_background"
+                android:textColor="@android:color/black"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                android:padding="8dp"
+                android:layout_marginRight="10dp"/>
 
-        <EditText
-            android:id="@+id/addressEditText"
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+        <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="輸入地址"
-            android:background="@drawable/edit_text_background"
-            android:textColor="@android:color/black"
-            android:textSize="16sp"
-            android:padding="8dp"/>
+            android:layout_marginTop="10dp">
 
-        <TextView
-            android:id="@+id/priceText"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="價格:"
-            android:textStyle="bold"
-            />
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toStartOf="@id/priceEditText"
+                android:src="@drawable/price"
+                android:id="@+id/priceImg"
+                android:layout_marginHorizontal="2dp" />
 
-        <EditText
-            android:id="@+id/priceEditText"
+            <EditText
+                android:id="@+id/priceEditText"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:hint="餐點價格"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintStart_toEndOf="@id/priceImg"
+                android:inputType="numberDecimal"
+                android:background="@drawable/edit_text_background"
+                android:textColor="@android:color/black"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                android:padding="8dp"
+                android:layout_marginRight="10dp"/>
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+        <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="輸入價格"
-            android:inputType="numberDecimal"
-            android:background="@drawable/edit_text_background"
-            android:textColor="@android:color/black"
-            android:textSize="16sp"
-            android:padding="8dp"/>
+            android:layout_marginTop="10dp">
 
-        <TextView
-            android:id="@+id/selectedDateText"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="拍攝日期:"
-            android:textStyle="bold" />
-        <EditText
-            android:id="@+id/selectedDateEditText"
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toStartOf="@id/selectedDateEditText"
+                android:src="@drawable/date"
+                android:id="@+id/dateImg"
+                android:layout_marginHorizontal="2dp" />
+
+            <TextView
+                android:id="@+id/selectedDateEditText"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:hint="選擇日期"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintStart_toEndOf="@id/dateImg"
+                android:background="@drawable/edit_text_background"
+                android:textColor="@android:color/black"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                android:padding="8dp"
+                android:layout_marginRight="10dp"/>
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+        <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="點擊選擇日期"
-            android:background="@drawable/edit_text_background"
-            android:textColor="@android:color/black"
-            android:textSize="16sp"
-            android:padding="8dp"/>
+            android:layout_marginTop="10dp">
+
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toStartOf="@id/descriptionEditText"
+                android:src="@drawable/desc"
+                android:id="@+id/descImg"
+                android:layout_marginHorizontal="2dp" />
+
+            <EditText
+                android:id="@+id/descriptionEditText"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:hint="介紹內容"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintStart_toEndOf="@id/descImg"
+                android:background="@drawable/edit_text_background"
+                android:textColor="@android:color/black"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                android:padding="8dp"
+                android:layout_marginRight="10dp"/>
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
         <DatePicker
             android:enabled="false"
             android:visibility="invisible"
             android:id="@+id/datePicker"
             android:layout_width="1dp"
             android:layout_height="1dp"/>
+
+        <TextView
+            android:id="@+id/foodclass"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="TextView"
+            android:visibility="invisible" />
 
     </LinearLayout>
 

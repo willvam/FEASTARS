@@ -8,8 +8,9 @@ public class Video {
     private final String price ;
 
     private final Long id;
+    private final String uploader;
 
-    public Video(String videoUrl, String title, String address, String date, String price, long id) {
+    public Video(String videoUrl, String title, String address, String date, String price, long id,String uploader) {
 
         if (videoUrl == null) {
             throw new IllegalArgumentException("VideoUrl cannot be null");
@@ -26,6 +27,9 @@ public class Video {
         if (price == null) {
             throw new IllegalArgumentException("price cannot be null");
         }
+        if (uploader == null) {
+            throw new IllegalArgumentException("uploader cannot be null");
+        }
 
         this.videoUrl = videoUrl;
         this.title = title;
@@ -33,6 +37,7 @@ public class Video {
         this.price = price;
         this.date = date;
         this.id = id;
+        this.uploader = uploader;
     }
 
     public String getVideoUrl() {
@@ -52,5 +57,7 @@ public class Video {
     public String getPrice() { return price; }
 
     public Long getId() { return id; }
+
+    public String getUploader(){return uploader;}
 
 }

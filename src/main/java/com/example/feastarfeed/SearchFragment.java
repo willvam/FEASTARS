@@ -6,6 +6,7 @@ import static android.content.ContentValues.TAG;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.Dialog;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
@@ -33,10 +34,12 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
 import android.widget.AutoCompleteTextView;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.ListView;
 import android.widget.SearchView;
 
 import com.bumptech.glide.Glide;
@@ -54,6 +57,7 @@ import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptor;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolylineOptions;
@@ -121,14 +125,6 @@ public class SearchFragment extends Fragment implements GoogleMap.OnMarkerClickL
     GoogleMap googleMap;
     private AutocompleteSupportFragment autoCompleteFragment;
 
-    private final LatLng TAIPEI = new LatLng(25.0330, 121.5654);
-    private final LatLng TAICHUNG = new LatLng(24.1477, 120.6736);
-    private final LatLng CHIAYI = new LatLng(23.4801, 120.4472);
-
-    private Marker markerTAIPEI;
-    private Marker markerTAICHUNG;
-    private Marker markerCHIAYI;
-
     private final int FINE_PERMISSION_CODE = 1;
 
     FusedLocationProviderClient fusedLocationProviderClient;
@@ -136,18 +132,40 @@ public class SearchFragment extends Fragment implements GoogleMap.OnMarkerClickL
     boolean bottomVideoViewVisible = false;
 
 
-    public static CharSequence placeName, placeAddress;
+    public static String placeName, placeAddress;
+
+    String foodTag,videoName;
+
+    public static ArrayList<String> foodsTitleArray;
 
     FirebaseDatabase database = FirebaseDatabase.getInstance();
 
     String address;
 
-    public static ArrayList<String> nameArraylist;
-
     double latitude, longitude;
     Location currentLocation;
 
     FragmentManager fragmentManager;
+
+    TypeFilter typeFilter = TypeFilter.ESTABLISHMENT;
+
+    public SearchView searchView;
+
+    ListView listView;
+
+    ArrayList<String> placeArraylist;
+
+    PlaceAdapter placeAdapter;
+
+    int x=0, y=0, count=0, a=0, b=0, count1=0;
+
+    String foodsTitle;
+
+    String foodsTitle1;
+
+    String keyIn;
+
+    String query = "";
 
     public SearchFragment() {
 
@@ -158,23 +176,18 @@ public class SearchFragment extends Fragment implements GoogleMap.OnMarkerClickL
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_search, container, false);
 
+        searchView = view.findViewById(R.id.searchView);
+        listView = view.findViewById(R.id.listView);
+
+        listView.setVisibility(View.GONE);
+
         Locale locale = new Locale("zh", "TW");
         Locale.setDefault(locale);
 
-        autoCompleteFragment = (AutocompleteSupportFragment)
-                getChildFragmentManager().findFragmentById(R.id.autoCompleteFragment);
-
-        Places.initialize(getContext().getApplicationContext(), "AIzaSyBJiZZZVX1857CpQvpsGUKpyOdmvHkJW3o",locale);
+        Places.initialize(getContext().getApplicationContext(), "AIzaSyBJiZZZVX1857CpQvpsGUKpyOdmvHkJW3o", locale);
 
         fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(requireActivity());
 
-        RectangularBounds bounds = RectangularBounds.newInstance(
-                // 設置搜索範圍的邊界
-                new LatLng(21.892000, 119.560000),
-                new LatLng(25.305000, 122.008000)
-        );
-
-        autoCompleteFragment.setLocationBias(bounds);
         getLastLocation();
 
         return view;
@@ -184,18 +197,21 @@ public class SearchFragment extends Fragment implements GoogleMap.OnMarkerClickL
     public void onMapReady(@NonNull GoogleMap googleMap) {
         this.googleMap = googleMap;
 
-        LatLng myLocation = new LatLng(currentLocation.getLatitude(),currentLocation.getLongitude());
-        googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(myLocation,12f));
+        // 获取传递的查询文本
+
+        LatLng myLocation = new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude());
+        googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(myLocation, 12f));
 
         LatLng chiayi = new LatLng(23.464056589663414, 120.44544208361198);
-        googleMap.addMarker(new MarkerOptions()
-                .position(chiayi)
-                .icon(BitmapDescriptorFactory.fromResource(R.drawable.marker)));
-        googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(chiayi, 12f));
+
+        googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(chiayi, 14f));
 
         googleMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
             @Override
             public boolean onMarkerClick(@NonNull Marker marker) {
+                placeName = (String) marker.getTag();
+                placeAddress = marker.getSnippet();
+                Log.d("SearcgFragment", "placeAddress : " + placeAddress);
                 fragmentManager = getChildFragmentManager();
                 FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
                 fragmentTransaction.setCustomAnimations(R.anim.slide_in, R.anim.slide_out);
@@ -215,38 +231,44 @@ public class SearchFragment extends Fragment implements GoogleMap.OnMarkerClickL
 
                 fragmentTransaction.commit();
 
-                return false;
+                return true;
             }
         });
 
-        nameArraylist = new ArrayList<>();
-
         PlacesClient placesClient = Places.createClient(this.getContext());
+        placeArraylist = new ArrayList<>();
+        ArrayList<String> foodTagArraylist;
+        foodTagArraylist = new ArrayList<>();
         //自動新增地點
         DatabaseReference placeRef = database.getReference("Videos");
         placeRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
-                for (DataSnapshot dataSnapshot:snapshot.getChildren()){
+                for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
                     address = dataSnapshot.child("title").getValue(String.class);
+                    placeArraylist.add(address);
+                    Iterable<DataSnapshot> dataSnapshotIterable = dataSnapshot.child("Foodtags").getChildren();
+                    for (DataSnapshot dataSnapshot1 : dataSnapshotIterable) {
+                        foodTag = dataSnapshot1.getValue(String.class);
+                        foodTagArraylist.add(foodTag);
+                    }
+
                     AutocompleteSessionToken token = AutocompleteSessionToken.newInstance();
                     FindAutocompletePredictionsRequest predictionsRequest = FindAutocompletePredictionsRequest.builder()
                             .setTypeFilter(TypeFilter.ESTABLISHMENT) // 指定搜索类型为店铺或地点
                             .setSessionToken(token) // 设置会话令牌
                             .setQuery(address) // 设置搜索查询文本
                             .build();
-
 // 发送请求并处理响应
                     placesClient.findAutocompletePredictions(predictionsRequest).addOnSuccessListener((response) -> {
                         for (AutocompletePrediction prediction : response.getAutocompletePredictions()) {
                             String placeId = prediction.getPlaceId(); // 获取地点的 ID
                             String placeName1 = prediction.getPrimaryText(null).toString(); // 获取地点的主要文本（名称）
                             Log.i(TAG, "Place ID: " + placeId + ", Place Name: " + placeName1);
-                            nameArraylist.add(placeName1);
-                            Log.d("SearchFragment","nameArray : "+nameArraylist);
+
                             // 在这里处理您获取的地点信息
 
-                            FetchPlaceRequest LAT_LNGrequest = FetchPlaceRequest.builder(placeId, Arrays.asList(Place.Field.LAT_LNG))
+                            FetchPlaceRequest LAT_LNGrequest = FetchPlaceRequest.builder(placeId, Arrays.asList(Place.Field.ID, Place.Field.NAME, Place.Field.LAT_LNG, Place.Field.ADDRESS))
                                     .build();
 
                             // 发起请求
@@ -254,19 +276,21 @@ public class SearchFragment extends Fragment implements GoogleMap.OnMarkerClickL
                                 Place place = fetchResponse.getPlace();
                                 // 获取地点的经纬度信息
                                 LatLng latLng = place.getLatLng();
-                                placeName = place.getName();
-                                placeAddress = place.getAddress();
                                 if (latLng != null) {
                                     latitude = latLng.latitude;
                                     longitude = latLng.longitude;
-                                    googleMap.addMarker(new MarkerOptions()
+                                    Marker marker = googleMap.addMarker(new MarkerOptions()
                                             .position(latLng)
                                             .icon(BitmapDescriptorFactory.fromResource(R.drawable.marker)));
+                                    marker.setTag(placeName1);
+                                    marker.setSnippet(place.getAddress());
+                                    marker.setTitle(foodTagArraylist.toString());
+                                    Log.d("SearchFragment", "getAddress : " + place.getAddress());
                                     // 使用经纬度信息进行后续操作
                                     Log.i(TAG, "Latitude: " + latitude + ", Longitude: " + longitude);
-                                } else {
-                                    // 未找到经纬度信息
-                                }
+                                    Log.d("SearchFragment", "foodTags : " + marker.getTitle());
+                                }  // 未找到经纬度信息
+
 
                             }).addOnFailureListener((exception) -> {
                                 // 处理请求失败情况
@@ -285,36 +309,230 @@ public class SearchFragment extends Fragment implements GoogleMap.OnMarkerClickL
             }
         });
 
+        foodsTitleArray = new ArrayList<>();
+        placeAdapter = new PlaceAdapter(getContext(), placeArraylist);
+        listView.setAdapter(placeAdapter);
 
-        autoCompleteFragment.setPlaceFields(Arrays.asList(Place.Field.ID, Place.Field.NAME, Place.Field.LAT_LNG, Place.Field.ADDRESS));
+        Bundle args = getArguments();
+        if (args != null && args.containsKey("tag")) {
+            query = args.getString("tag", "");
+        } else if (args != null && args.containsKey("text")) {
+            query = args.getString("text","");
+            placeAdapter.getFilter().filter(query);
+            listView.setVisibility(View.VISIBLE);
+        }
+        // 设置 SearchView 的查询文本
+        if (query != null && !query.isEmpty()) {
+            searchView.setQuery(query, true);
+            x = 0;
+            y = 0;
+            count = 0;
 
-        autoCompleteFragment.setOnPlaceSelectedListener(new PlaceSelectionListener() {
+            b = 0;
+
+            foodsTitle1 = "";
+            foodsTitleArray.clear();
+
+            DatabaseReference Ref = database.getReference("Videos");
+            Ref.addValueEventListener(new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot snapshot) {
+                    for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
+                        ++x;
+                        Log.d("SearchFragment","x = "+x);
+                        videoName = dataSnapshot.child("title").getValue(String.class);
+                        if (videoName != null && videoName.equals(query)){
+                            y=x;
+                            count++;
+                        }
+                        Iterable<DataSnapshot> dataSnapshotIterable = dataSnapshot.child("Foodtags").getChildren();
+                        for (DataSnapshot dataSnapshot1 : dataSnapshotIterable) {
+                            foodTag = dataSnapshot1.getValue(String.class);
+                            if (foodTag != null && foodTag.equals(query)){ y = x; count++; }
+                            Log.d("SearchFragment","count = "+count);
+                            Log.d("SearchFragment","y = "+y);
+                        }
+
+                        if (y != 0){
+                            DatabaseReference titleRef = Ref.child("V"+y).child("title");
+                            titleRef.addValueEventListener(new ValueEventListener() {
+                                @Override
+                                public void onDataChange(@NonNull DataSnapshot snapshot) {
+                                    foodsTitle = snapshot.getValue(String.class);
+                                    if (!foodsTitle1.equals(foodsTitle)){
+                                        foodsTitle1 = foodsTitle;
+                                        foodsTitleArray.add(foodsTitle1);
+                                        Log.d("SearchFragment","foodstitle = "+foodsTitle);
+                                        Log.d("SearchFragment","foodsTitleArray.size() = "+foodsTitleArray.size());
+                                        if (foodsTitleArray.size() == count){
+                                            Log.d("SearchFragment","foodsArray = "+foodsTitleArray);
+                                            Log.d("placeAdapter","placeAdapter.getCount() = "+placeAdapter.getCount());
+                                            placeAdapter.filteredList.addAll(foodsTitleArray);
+                                            Log.d("placeAdapter","placeAdapter.filteredList = "+placeAdapter.filteredList);
+                                            placeAdapter.notifyDataSetChanged();
+                                        }
+                                    }
+
+                                }
+
+                                @Override
+                                public void onCancelled(@NonNull DatabaseError error) {
+
+                                }
+                            });
+                        }
+
+                    }
+                }
+
+                @Override
+                public void onCancelled(@NonNull DatabaseError error) {
+
+                }
+            });
+            listView.setVisibility(View.VISIBLE);
+        }
+
+        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
-            public void onPlaceSelected(@NonNull Place place) {
-                // TODO: Get info about the selected place.
-                Log.i(TAG, "Place: " + place.getName() + ", " + place.getId());
-                LatLng latLng = place.getLatLng();
-                googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 12f));
-                googleMap.addMarker(new MarkerOptions()
-                        .position(latLng)
-                        .icon(BitmapDescriptorFactory.fromResource(R.drawable.marker)));
-
-                placeName = place.getName();
-                placeAddress = place.getAddress();
-                Log.i(TAG, "Place Address: " + placeAddress);
-
+            public boolean onQueryTextSubmit(String query) {
+                return false;
             }
 
-
             @Override
-            public void onError(@NonNull Status status) {
-                // TODO: Handle the error.
-                Log.i(TAG, "An error occurred: " + status);
+            public boolean onQueryTextChange(String newText) {
+                keyIn = newText;
+                x = 0;
+                y = 0;
+                count = 0;
+                foodsTitle1 = "";
+                foodsTitleArray.clear();
+
+                DatabaseReference Ref = database.getReference("Videos");
+                Ref.addValueEventListener(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot snapshot) {
+                        for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
+                            ++x;
+                            Log.d("SearchFragment","x = "+x);
+                            Iterable<DataSnapshot> dataSnapshotIterable = dataSnapshot.child("Foodtags").getChildren();
+                            for (DataSnapshot dataSnapshot1 : dataSnapshotIterable) {
+                                foodTag = dataSnapshot1.getValue(String.class);
+                                if (foodTag != null && foodTag.equals(newText)){ y = x; count++; }
+                                Log.d("SearchFragment","count = "+count);
+                                Log.d("SearchFragment","y = "+y);
+                            }
+
+                            if (y != 0){
+                                DatabaseReference titleRef = Ref.child("V"+y).child("title");
+                                titleRef.addValueEventListener(new ValueEventListener() {
+                                    @Override
+                                    public void onDataChange(@NonNull DataSnapshot snapshot) {
+                                        foodsTitle = snapshot.getValue(String.class);
+                                        if (!foodsTitle1.equals(foodsTitle)){
+                                            foodsTitle1 = foodsTitle;
+                                            foodsTitleArray.add(foodsTitle1);
+                                            Log.d("SearchFragment","foodstitle = "+foodsTitle);
+                                            Log.d("SearchFragment","foodsTitleArray.size() = "+foodsTitleArray.size());
+                                            if (foodsTitleArray.size() == count){
+                                                Log.d("SearchFragment","foodsArray = "+foodsTitleArray);
+                                                Log.d("placeAdapter","placeAdapter.getCount() = "+placeAdapter.getCount());
+                                                placeAdapter.filteredList.addAll(foodsTitleArray);
+                                                Log.d("placeAdapter","placeAdapter.filteredList = "+placeAdapter.filteredList);
+                                                placeAdapter.notifyDataSetChanged();
+                                            }
+                                        }
+
+                                    }
+
+                                    @Override
+                                    public void onCancelled(@NonNull DatabaseError error) {
+
+                                    }
+                                });
+                            }
+
+                        }
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError error) {
+
+                    }
+                });
+
+                if (newText.isEmpty()) {
+                    listView.setVisibility(View.GONE);
+                } else {
+                    listView.setVisibility(View.VISIBLE);
+                    placeAdapter.getFilter().filter(keyIn);
+
+                }
+                return false;
+            }
+        });
+
+        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                String selectedPlace = placeAdapter.filteredList.get(position);
+
+                searchView.setQuery(selectedPlace, true);
+                listView.setVisibility(View.GONE);
+                InputMethodManager imm = (InputMethodManager) view.getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
+                imm.hideSoftInputFromWindow(searchView.getWindowToken(), 0);
+
+                AutocompleteSessionToken token = AutocompleteSessionToken.newInstance();
+                FindAutocompletePredictionsRequest predictionsRequest = FindAutocompletePredictionsRequest.builder()
+                        .setTypeFilter(TypeFilter.ESTABLISHMENT) // 指定搜索类型为店铺或地点
+                        .setSessionToken(token) // 设置会话令牌
+                        .setQuery(selectedPlace) // 设置搜索查询文本
+                        .build();
+// 发送请求并处理响应
+                placesClient.findAutocompletePredictions(predictionsRequest).addOnSuccessListener((response) -> {
+                    for (AutocompletePrediction prediction : response.getAutocompletePredictions()) {
+                        String placeId = prediction.getPlaceId(); // 获取地点的 ID
+                        String placeName1 = prediction.getPrimaryText(null).toString(); // 获取地点的主要文本（名称）
+                        Log.i(TAG, "Place ID: " + placeId + ", Place Name: " + placeName1);
+
+                        // 在这里处理您获取的地点信息
+
+                        FetchPlaceRequest LAT_LNGrequest = FetchPlaceRequest.builder(placeId, Arrays.asList(Place.Field.ID, Place.Field.NAME, Place.Field.LAT_LNG, Place.Field.ADDRESS))
+                                .build();
+
+                        // 发起请求
+                        placesClient.fetchPlace(LAT_LNGrequest).addOnSuccessListener((fetchResponse) -> {
+                            Place place = fetchResponse.getPlace();
+                            // 获取地点的经纬度信息
+                            LatLng latLng = place.getLatLng();
+                            if (latLng != null) {
+                                latitude = latLng.latitude;
+                                longitude = latLng.longitude;
+
+                                googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 16f));
+
+                            }  // 未找到经纬度信息
+
+
+                        }).addOnFailureListener((exception) -> {
+                            // 处理请求失败情况
+                        });
+                    }
+                }).addOnFailureListener((exception) -> {
+                    // 处理请求失败的情况
+                    Log.e(TAG, "Place Autocomplete request failed: " + exception.getMessage());
+                });
+
             }
         });
 
         // Use fields to define the data types to return.
         List<Place.Field> placeFields = Collections.singletonList(Place.Field.NAME);
+
+        LatLngBounds bounds = new LatLngBounds.Builder()
+                .include(chiayi) // 設置一個偏好的區域中心
+                .build();
+        RectangularBounds locationBias = RectangularBounds.newInstance(bounds);
 
 // Use the builder to create a FindCurrentPlaceRequest.
         FindCurrentPlaceRequest request = FindCurrentPlaceRequest.newInstance(placeFields);
@@ -323,7 +541,7 @@ public class SearchFragment extends Fragment implements GoogleMap.OnMarkerClickL
         if (ContextCompat.checkSelfPermission(this.getContext(), ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
             Task<FindCurrentPlaceResponse> placeResponse = placesClient.findCurrentPlace(request);
             placeResponse.addOnCompleteListener(task -> {
-                if (task.isSuccessful()){
+                if (task.isSuccessful()) {
                     FindCurrentPlaceResponse response = task.getResult();
                     for (PlaceLikelihood placeLikelihood : response.getPlaceLikelihoods()) {
                         Log.i(TAG, String.format("Place '%s' has likelihood: %f",
@@ -347,7 +565,7 @@ public class SearchFragment extends Fragment implements GoogleMap.OnMarkerClickL
         googleMap.getUiSettings().setZoomControlsEnabled(true);
         googleMap.getUiSettings().setCompassEnabled(true);
         if (ActivityCompat.checkSelfPermission(requireContext(), ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(requireActivity(), new String[]{ACCESS_FINE_LOCATION},FINE_PERMISSION_CODE);
+            ActivityCompat.requestPermissions(requireActivity(), new String[]{ACCESS_FINE_LOCATION}, FINE_PERMISSION_CODE);
             return;
         }
         googleMap.setMyLocationEnabled(true);
@@ -363,7 +581,7 @@ public class SearchFragment extends Fragment implements GoogleMap.OnMarkerClickL
         task.addOnSuccessListener(new OnSuccessListener<Location>() {
             @Override
             public void onSuccess(Location location) {
-                if (location != null){
+                if (location != null) {
                     currentLocation = location;
                     SupportMapFragment mapFragment = (SupportMapFragment) getChildFragmentManager()
                             .findFragmentById(R.id.map);
@@ -380,10 +598,10 @@ public class SearchFragment extends Fragment implements GoogleMap.OnMarkerClickL
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if (requestCode == FINE_PERMISSION_CODE) {
-            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED){
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 getLastLocation();
-            }else {
-                Toast.makeText(getContext(),"Location Permission is denied",Toast.LENGTH_SHORT).show();
+            } else {
+                Toast.makeText(getContext(), "Location Permission is denied", Toast.LENGTH_SHORT).show();
             }
         }
     }
@@ -393,118 +611,4 @@ public class SearchFragment extends Fragment implements GoogleMap.OnMarkerClickL
         return false;
     }
 
-    public interface DirectionsApiService {
-        @GET("directions/json")
-        Call<DirectionsResponse> getDirections(
-                @Query("origin") String origin,
-                @Query("destination") String destination,
-                @Query("key") String apiKey
-        );
-    }
-
-    public class DirectionsResponse {
-        @SerializedName("routes")
-        private List<Route> routes;
-
-        public List<Route> getRoutes() {
-            return routes;
-        }
-    }
-
-    public class Route {
-        @SerializedName("overview_polyline")
-        private Polyline polyline;
-
-        public Polyline getPolyline() {
-            return polyline;
-        }
-    }
-
-    public class Polyline {
-        @SerializedName("points")
-        private String points;
-
-        public String getPoints() {
-            return points;
-        }
-    }
-
-    private void fetchAndDrawRoute(LatLng origin, LatLng destination) {
-        String apiKey = "AIzaSyBJiZZZVX1857CpQvpsGUKpyOdmvHkJW3o";
-        String originString = origin.latitude + "," + origin.longitude;
-        String destinationString = destination.latitude + "," + destination.longitude;
-
-        Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl("https://maps.googleapis.com/maps/api/")
-                .addConverterFactory(GsonConverterFactory.create())
-                .build();
-
-        DirectionsApiService service = retrofit.create(DirectionsApiService.class);
-        Call<DirectionsResponse> call = service.getDirections(originString, destinationString, apiKey);
-        call.enqueue(new Callback<DirectionsResponse>() {
-            @Override
-            public void onResponse(Call<DirectionsResponse> call, Response<DirectionsResponse> response) {
-                if (response.isSuccessful()) {
-                    DirectionsResponse directionsResponse = response.body();
-                    if (directionsResponse != null) {
-                        List<Route> routes = directionsResponse.getRoutes();
-                        if (routes != null && !routes.isEmpty()) {
-                            Route route = routes.get(0); // 獲取第一條路徑
-                            if (route != null) {
-                                PolylineOptions polylineOptions = new PolylineOptions();
-                                List<LatLng> points = decodePolyline(route.getPolyline().getPoints());
-                                for (LatLng point : points) {
-                                    polylineOptions.add(point);
-                                }
-                                googleMap.addPolyline(polylineOptions);
-                            }
-                        }
-                    }
-                }
-            }
-
-            @Override
-            public void onFailure(Call<DirectionsResponse> call, Throwable t) {
-                // 處理請求失敗的情況
-            }
-        });
-    }
-
-    // 解碼 Directions API 返回的編碼過的經緯度點
-    private List<LatLng> decodePolyline(String encoded) {
-        List<LatLng> polyline = new ArrayList<>();
-        int index = 0;
-        int len = encoded.length();
-        int lat = 0;
-        int lng = 0;
-
-        while (index < len) {
-            int b;
-            int shift = 0;
-            int result = 0;
-            do {
-                b = encoded.charAt(index++) - 63;
-                result |= (b & 0x1f) << shift;
-                shift += 5;
-            } while (b >= 0x20);
-            int dlat = ((result & 1) != 0 ? ~(result >> 1) : (result >> 1));
-            lat += dlat;
-
-            shift = 0;
-            result = 0;
-            do {
-                b = encoded.charAt(index++) - 63;
-                result |= (b & 0x1f) << shift;
-                shift += 5;
-            } while (b >= 0x20);
-            int dlng = ((result & 1) != 0 ? ~(result >> 1) : (result >> 1));
-            lng += dlng;
-
-            double latlng = lat / 1E5;
-            double lnglng = lng / 1E5;
-            LatLng point = new LatLng(latlng, lnglng);
-            polyline.add(point);
-        }
-        return polyline;
-    }
 }
