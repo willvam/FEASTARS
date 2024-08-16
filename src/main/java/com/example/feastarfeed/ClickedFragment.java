@@ -1,14 +1,17 @@
 package com.example.feastarfeed;
 
 import android.os.Bundle;
-import android.util.Log;
 
 import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
+import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.viewpager2.widget.ViewPager2;
 
-import com.airbnb.lottie.L;
+import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -18,7 +21,7 @@ import com.google.firebase.database.ValueEventListener;
 import java.util.ArrayList;
 import java.util.List;
 
-public class PersonalVideoActivity extends AppCompatActivity {
+public class ClickedFragment extends Fragment {
 
     private VideoAdapter adapter;
     FirebaseDatabase database = FirebaseDatabase.getInstance();
@@ -31,6 +34,10 @@ public class PersonalVideoActivity extends AppCompatActivity {
 
     String username;
 
+    public static int num = 1;
+
+    public static String string;
+
     private long parameterTime=5; //大於小於後要+-多少分數
     private long parameterTimeLOW=4; //小於幾秒-parameterTime
     private long parameterTimeHIGH=10;//大於幾秒-parameterTime
@@ -38,9 +45,9 @@ public class PersonalVideoActivity extends AppCompatActivity {
     private long parameterVideoList = 1; // 先放入幾个videoList元素(演算法比例調整)
     private long parameterVideoListRE = 1; // 然后放入幾个videoListRE元素
 
-    ArrayList<Tag> tagArrayList;
-    ArrayList<Comment> commentArrayList;
-    ArrayList<Comment> userArrayList;
+    public static ArrayList<Tag> tagArrayList;
+    public static ArrayList<Comment> commentArrayList;
+    public static ArrayList<Comment> userArrayList;
 
     public IdPassCallback idPassCallback;
 
@@ -48,32 +55,42 @@ public class PersonalVideoActivity extends AppCompatActivity {
         void onIdPassChanged(long idpass);
     }
 
-    public OnAliveChangeListener onAliveChangeListener;
-    public interface OnAliveChangeListener {
-        void onAliveChanged(ArrayList<Tag> tagArrayList);
-    }
-
-    public void setOnAliveChangeListener(OnAliveChangeListener listener) {
-        this.onAliveChangeListener = listener;
+    public ClickedFragment() {
+        // Required empty public constructor
     }
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_search_video);
 
-        tagArrayList = new ArrayList<>();
-        if (getApplicationContext() != null && getApplicationContext() instanceof OnAliveChangeListener){
-            setOnAliveChangeListener(onAliveChangeListener);
+    }
+
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+                             Bundle savedInstanceState) {
+        // Inflate the layout for this fragment
+        View view = inflater.inflate(R.layout.fragment_clicked, container, false);
+
+        TagFragment.num = num;
+
+        if (string.equals("account")){
+            videoList = AccountFragment.videoList;
+        }else if (string.equals("search")){
+            videoList = Bottom_VIdeo_View.videoList;
+        } else if (string.equals("others")) {
+            videoList = OthersAccountFragment.videoList;
         }
 
-        username = SharedPreferencesUtils.getUsername(this);
+        tagArrayList = new ArrayList<>();
 
-        ViewPager2 viewPager2 = findViewById(R.id.viewPager);
-        FragmentManager fragmentManager = getSupportFragmentManager();
+        username = SharedPreferencesUtils.getUsername(requireContext());
+
+        ViewPager2 viewPager2 = view.findViewById(R.id.viewPager2Clicked);
+        FragmentManager fragmentManager = getChildFragmentManager();
+
         Log.d("Personal", "videoList: " + videoList);
 
-        adapter = new VideoAdapter(videoList, videosRef, fragmentManager, null, null);
+        adapter = new VideoAdapter(videoList, videosRef, fragmentManager, null, idPassCallback);
         viewPager2.setAdapter(adapter);
 
         viewPager2.registerOnPageChangeCallback(new ViewPager2.OnPageChangeCallback() {
@@ -281,5 +298,7 @@ public class PersonalVideoActivity extends AppCompatActivity {
 
 
         });
+
+        return view;
     }
 }

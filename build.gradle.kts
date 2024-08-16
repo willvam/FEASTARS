@@ -99,4 +99,5 @@ dependencies {
     implementation ("com.google.android.exoplayer:exoplayer-ui:2.15.1")
     implementation ("com.github.mmoamenn:LuckyWheel_Android:0.3.0")
     implementation("com.airbnb.android:lottie:6.0.1")
+    implementation ("com.github.PhilJay:MPAndroidChart:v3.1.0")
 }

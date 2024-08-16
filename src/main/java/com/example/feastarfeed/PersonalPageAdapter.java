@@ -16,7 +16,6 @@ import java.util.ArrayList;
 public class PersonalPageAdapter extends RecyclerView.Adapter<PersonalPageAdapter.MyViewHolder> {
     ArrayList<String> arrayList;
     Context context;
-
     OnItemClickListener onItemClickListener;
 
     public PersonalPageAdapter(Context context, ArrayList<String> arrayList) {
@@ -36,7 +35,7 @@ public class PersonalPageAdapter extends RecyclerView.Adapter<PersonalPageAdapte
 
         String imageUrl = arrayList.get(position);
         Glide.with(context).load(imageUrl).into(holder.imageView);
-        holder.itemView.setOnClickListener(view -> onItemClickListener.onClick(arrayList.get(position)));
+        holder.itemView.setOnClickListener(view -> onItemClickListener.onClick(arrayList.get(position),position));
 
         //holder.imageView.setImageBitmap(arrayList.get(position).getBitmap());
     }
@@ -62,6 +61,6 @@ public class PersonalPageAdapter extends RecyclerView.Adapter<PersonalPageAdapte
     }
 
     public interface OnItemClickListener {
-        void onClick(String string);
+        void onClick(String string, int position);
     }
 }

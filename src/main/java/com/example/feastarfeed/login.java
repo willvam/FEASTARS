@@ -73,6 +73,15 @@ public class login extends AppCompatActivity {
                     return;
                 }
 
+                // 檢查是否為 superuser
+                if (email.equals("superuser") && password.equals("superuser")) {
+                    // 跳轉到 barchart Activity
+                    Intent intent = new Intent(login.this, barchart.class);
+                    startActivity(intent);
+                    finish(); // 可選擇是否結束當前 Activity
+                    return;
+                }
+
                 // 從 Realtime Database 中查找匹配的使用者資料
                 userRef.addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override

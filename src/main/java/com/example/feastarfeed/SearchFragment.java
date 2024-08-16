@@ -136,6 +136,8 @@ public class SearchFragment extends Fragment implements GoogleMap.OnMarkerClickL
 
     String foodTag,videoName;
 
+    int videoId;
+
     public static ArrayList<String> foodsTitleArray;
 
     FirebaseDatabase database = FirebaseDatabase.getInstance();
@@ -338,17 +340,19 @@ public class SearchFragment extends Fragment implements GoogleMap.OnMarkerClickL
                 @Override
                 public void onDataChange(@NonNull DataSnapshot snapshot) {
                     for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
-                        ++x;
+
                         Log.d("SearchFragment","x = "+x);
                         videoName = dataSnapshot.child("title").getValue(String.class);
+                        videoId = dataSnapshot.child("id").getValue(int.class);
+
                         if (videoName != null && videoName.equals(query)){
-                            y=x;
+                            y=videoId;
                             count++;
                         }
                         Iterable<DataSnapshot> dataSnapshotIterable = dataSnapshot.child("Foodtags").getChildren();
                         for (DataSnapshot dataSnapshot1 : dataSnapshotIterable) {
                             foodTag = dataSnapshot1.getValue(String.class);
-                            if (foodTag != null && foodTag.equals(query)){ y = x; count++; }
+                            if (foodTag != null && foodTag.equals(query)){ y = videoId; count++; }
                             Log.d("SearchFragment","count = "+count);
                             Log.d("SearchFragment","y = "+y);
                         }

@@ -14,6 +14,8 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentTransaction;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -24,6 +26,7 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class Bottom_VIdeo_View extends Fragment {
     FirebaseDatabase database = FirebaseDatabase.getInstance();
@@ -35,6 +38,10 @@ public class Bottom_VIdeo_View extends Fragment {
 
     String placeName = SearchFragment.placeName;
     String placeAddress = SearchFragment.placeAddress;
+
+    public static String string = "search";
+
+    public static List<Video> videoList, videoListClicked;
 
     public Bottom_VIdeo_View() {
         // Required empty public constructor
@@ -50,6 +57,12 @@ public class Bottom_VIdeo_View extends Fragment {
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         View view = inflater.inflate(R.layout.fragment_bottom_video_view, container, false);
+
+        videoList = new ArrayList<>();
+        loadVideosFromFirebase();
+
+        ClickedFragment.string = string;
+
         TextView name = view.findViewById(R.id.text);
         TextView address = view.findViewById(R.id.text1);
 
@@ -108,6 +121,41 @@ public class Bottom_VIdeo_View extends Fragment {
         return view;
     }
 
+    DatabaseReference videosRef = database.getReference("Videos");
+    public void loadVideosFromFirebase() {
+        videosRef.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                videoList.clear();
+                for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+
+                    String title = snapshot.child("title").getValue(String.class);
+                    String address = snapshot.child("address").getValue(String.class);
+                    String date = snapshot.child("date").getValue(String.class);
+                    String price = snapshot.child("price").getValue(String.class);
+                    String videoUrl = snapshot.child("videoUrl").getValue(String.class);
+                    Long id = snapshot.child("id").getValue(Long.class);
+                    String uploader = snapshot.child("Uploader").getValue(String.class);
+
+                    if (title.equals(placeName)){
+                        Log.d("SearchVideo","placeName:"+ placeName);
+                        Video video = new Video(videoUrl,title, address, date, price, id,uploader);
+                        videoList.add(video);
+                    }
+                }
+                //adapter.notifyDataSetChanged();
+
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                Log.e(TAG, "Failed to read value.", error.toException());
+            }
+
+
+        });
+    }
+
     public void loadPreviews() {
         databaseReference.addValueEventListener(new ValueEventListener() {
             @Override
@@ -129,9 +177,20 @@ public class Bottom_VIdeo_View extends Fragment {
 
                 adapter.setOnItemClickListener(new RecyclerviewAdapter.OnItemClickListener() {
                     @Override
-                    public void onClick(String string) {
-                        Intent intent = new Intent(requireActivity(), SearchVideoActivity.class);
-                        startActivity(intent);
+                    public void onClick(String string, int position) {
+                        Video video = videoList.get(position);
+                        videoListClicked = new ArrayList<>();
+                        videoListClicked.add(video);
+
+                        //Intent intent = new Intent(requireActivity(),PersonalVideoActivity.class);
+                        //startActivity(intent);
+
+                        FragmentManager fragmentManager = requireActivity().getSupportFragmentManager();
+                        FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+                        fragmentTransaction.setCustomAnimations(R.anim.slide_in2, R.anim.slide_out2);
+                        fragmentTransaction.replace(R.id.frame_layout, new ClickedFragment());
+                        fragmentTransaction.addToBackStack(null);
+                        fragmentTransaction.commit();
                     }
                 });
 

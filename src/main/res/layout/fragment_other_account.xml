@@ -195,7 +195,7 @@
     </ScrollView>
 
     <FrameLayout
-        android:id="@+id/mealSuggestion"
+        android:id="@+id/OthersAccount"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 

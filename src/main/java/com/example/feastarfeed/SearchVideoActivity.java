@@ -39,7 +39,7 @@ public class SearchVideoActivity extends AppCompatActivity {
         FragmentManager fragmentManager = getSupportFragmentManager();
 
         videoList = new ArrayList<>();
-        adapter = new VideoAdapter(videoList, videosRef, fragmentManager, null);
+        adapter = new VideoAdapter(videoList, videosRef, fragmentManager, null, null);
         viewPager2.setAdapter(adapter);
         viewPager2.registerOnPageChangeCallback(new ViewPager2.OnPageChangeCallback() {
             @Override

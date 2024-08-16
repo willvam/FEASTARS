@@ -2,21 +2,32 @@ package com.example.feastarfeed;
 
 import static android.content.ContentValues.TAG;
 
+
 import androidx.activity.result.ActivityResult;
 import androidx.activity.result.ActivityResultCallback;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+
+
 import android.annotation.SuppressLint;
 import android.app.DatePickerDialog;
-import android.content.ClipData;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
+import android.media.MediaCodec;
+import android.media.MediaCodecInfo;
+import android.media.MediaExtractor;
+import android.media.MediaFormat;
 import android.media.MediaMetadataRetriever;
+import android.media.MediaMuxer;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
+import android.provider.MediaStore;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -53,12 +64,15 @@ import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
 
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Locale;
@@ -72,13 +86,17 @@ import java.util.UUID;
 
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import android.Manifest;
+
 
 
 public class upload extends AppCompatActivity{
+
+    private static final int REQUEST_VIDEO_CAPTURE =1;
     StorageReference storageReference;
     LinearProgressIndicator progressIndicator;
     Uri video;
-    TextView uploadvideo,selectvideo,selectphoto;
+    TextView uploadvideo,selectvideo,selectphoto,opencamera;
     ImageButton Back_button;
     ImageView videopreview;
     EditText titleEditText,addressEditText,priceEditText,descriptionEditText;
@@ -90,14 +108,24 @@ public class upload extends AppCompatActivity{
 
     String newVid,newcont;
     long longvid;
+    private ActivityResultLauncher<String> requestPermissionLauncher;
 
     private AutocompleteSupportFragment autoCompleteFragment;
 
     FusedLocationProviderClient fusedLocationProviderClient;
 
     String placeName,placeAddress;
+
     private StringBuffer selectedTagsBuffer = new StringBuffer();
 
+    private static final int CAMERA_PERMISSION_CODE = 101;
+
+    private static final int CAMERA_PERMISSION_REQUEST_CODE = 101;
+
+    private static final long TIMEOUT_USEC = 10000; // 10毫秒
+
+
+    Button Test;
 
     @SuppressLint("MissingInflatedId")
     @Override
@@ -121,7 +149,8 @@ public class upload extends AppCompatActivity{
         selectvideo =findViewById(R.id.selectvideo);
         selectphoto = findViewById(R.id.selectphoto);
         foodclass = findViewById(R.id.foodclass);
-
+        opencamera =findViewById(R.id.opencamera);
+        Test = findViewById(R.id.test);
         foodTagsEditText = findViewById(R.id.foodTagsEditText);
         titleEditText = findViewById(R.id.titleEditText);
         priceEditText = findViewById(R.id.priceEditText);
@@ -173,14 +202,26 @@ public class upload extends AppCompatActivity{
         Back_button = findViewById(R.id.back_button);
 
         datePicker = findViewById(R.id.datePicker);
+        Test.setOnClickListener(new View.OnClickListener(){
+            @Override
+            public void onClick(View view){
+                Log.d("upload","點季");
+                if (ActivityCompat.checkSelfPermission(upload.this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
+                    // 如果權限未被授予，請求相應的權限
+                    ActivityCompat.requestPermissions(upload.this, new String[]{Manifest.permission.CAMERA}, CAMERA_PERMISSION_CODE);
+                    return;
+                }
 
+                // 如果已經有相機權限，啟動相機錄像
+                openCameraForVideoCaptureIntent();
+            }
+        });
         selectvideo.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View view){
                 Intent intent = new Intent(Intent.ACTION_PICK);
                 intent.setType("video/*");
                 activityResultLauncher.launch(intent);
-                //startActivityForResult(intent, 3);
             }
         });
         selectphoto.setOnClickListener(new View.OnClickListener(){
@@ -226,6 +267,26 @@ public class upload extends AppCompatActivity{
                 finish();
             }
         });
+
+    }
+
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == CAMERA_PERMISSION_REQUEST_CODE) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                // 相機權限已獲取,啟動相機錄影
+                openCameraForVideoCaptureIntent();
+            } else {
+                // 相機權限被拒絕
+                Toast.makeText(this, "Camera Permission is denied", Toast.LENGTH_SHORT).show();
+            }
+        }
+    }
+    private void openCameraForVideoCaptureIntent() {
+        Intent videoIntent = new Intent(MediaStore.ACTION_VIDEO_CAPTURE);
+        activityResultLauncher.launch(videoIntent);
     }
     private void openTagSearchActivity() {
         Intent intent = new Intent(this, TagSearchActivity.class);
@@ -261,167 +322,253 @@ public class upload extends AppCompatActivity{
                 }
             }
     );
+
+
+
     private final ActivityResultLauncher<Intent> activityResultLauncher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), new ActivityResultCallback<ActivityResult>() {
         @Override
-        //偵測照片
         public void onActivityResult(ActivityResult result) {
-            if (result.getResultCode() == RESULT_OK && result.getData() != null) {
-                Uri selectedfile = result.getData().getData();
-                if (selectedfile != null) {
-                    String fileType = getContentResolver().getType(selectedfile);
-//                    foodTagEditText.setVisibility(View.VISIBLE);
-//                    foodTagsText.setVisibility(View.VISIBLE);
-//                    titleEditText.setVisibility(View.VISIBLE);
-//                    addressEditText.setVisibility(View.VISIBLE);
-//                    priceEditText.setVisibility(View.VISIBLE);
-//                    priceEditText.setVisibility(View.VISIBLE);
-//                    selectedDateEditView.setVisibility(View.VISIBLE);
-//                    priceEditText.setVisibility(View.VISIBLE);
-//
-//                    titleText.setVisibility(View.VISIBLE);
-//                    addressText.setVisibility(View.VISIBLE);
-//                    selectedDateTextView.setVisibility(View.VISIBLE);
-
-                    if (fileType != null && fileType.startsWith("image/")) {
-                        // 用戶選擇了照片
-                        List<Uri> imageUris = new ArrayList<>();
-                        imageUris.add(selectedfile);
-                        //handleImageSelection(imageUris);
-                    } else {
-                        //選影片
-                        Bitmap image = null;
-                        Bitmap image2 = null;//
-                        Bitmap image3 = null;//
-                        Bitmap image4 = null;
-                        Bitmap image5 = null;
-                        Bitmap image6 = null;
-
-                        uploadvideo.setEnabled(true);
-                        video = selectedfile;
-                        // 使用 MediaMetadataRetriever 获取视频的预览图像
-                        MediaMetadataRetriever retriever = new MediaMetadataRetriever();
-                        retriever.setDataSource(upload.this, video);
-                        Bitmap bitmap = retriever.getFrameAtTime(); // 获取视频的第一帧图像
-                        videopreview.setImageBitmap(bitmap);
-                        //這裡要不要讓他可以看整個影片，不要只是第一幀?
-
-                        image = retriever.getFrameAtTime(5 * 1000000, MediaMetadataRetriever.OPTION_CLOSEST_SYNC);//第一張在第5秒
-                        image2 = retriever.getFrameAtTime(10 * 1000000, MediaMetadataRetriever.OPTION_CLOSEST_SYNC);//第二張在第10秒
-                        image3 = retriever.getFrameAtTime(15 * 1000000, MediaMetadataRetriever.OPTION_CLOSEST_SYNC);//第三張在第15秒
-                        image4 = retriever.getFrameAtTime(20 * 1000000, MediaMetadataRetriever.OPTION_CLOSEST_SYNC);
-                        image5 = retriever.getFrameAtTime(25 * 1000000, MediaMetadataRetriever.OPTION_CLOSEST_SYNC);
-                        image6 = retriever.getFrameAtTime(30 * 1000000, MediaMetadataRetriever.OPTION_CLOSEST_SYNC);
-
-                        image = Bitmap.createScaledBitmap(image, imageSize, imageSize, false);
-                        image2 = Bitmap.createScaledBitmap(image2, imageSize, imageSize, false);
-                        image3 = Bitmap.createScaledBitmap(image3, imageSize, imageSize, false);
-                        image4 = Bitmap.createScaledBitmap(image4, imageSize, imageSize, false);
-                        image5 = Bitmap.createScaledBitmap(image5, imageSize, imageSize, false);
-                        image6 = Bitmap.createScaledBitmap(image6, imageSize, imageSize, false);
-
-                        String[] resultdachi = new String[6];
-                        classifyImage(image);//辨識
-                        resultdachi[0] = (String) foodclass.getText();
-                        classifyImage(image2);//
-                        resultdachi[1] = (String) foodclass.getText();
-                        classifyImage(image3);//
-                        resultdachi[2] = (String) foodclass.getText();
-                        classifyImage(image4);//辨識
-                        resultdachi[3] = (String) foodclass.getText();
-                        classifyImage(image5);//辨識
-                        resultdachi[4] = (String) foodclass.getText();
-                        classifyImage(image6);//辨識
-                        resultdachi[5] = (String) foodclass.getText();
-                        //textView.setText(resultdachi[0]+","+resultdachi[1]+","+resultdachi[2]);
-
-                        // 使用 HashMap 來計算 resultdachi 中每個元素出現的次數
-                        HashMap<String, Integer> countMap = new HashMap<>();
-                        for (String foodclass : resultdachi) {
-                            if (countMap.containsKey(result)) {
-                                countMap.put(foodclass, countMap.get(result) + 1);
-                            } else {
-                                countMap.put(foodclass, 1);
-                            }
-                        }
-
-                        // 找出出現次數最多的元素
-                        String mostFrequentResult = null;
-                        int maxCount = 0;
-                        for (Map.Entry<String, Integer> entry : countMap.entrySet()) {
-                            if (entry.getValue() > maxCount) {
-                                mostFrequentResult = entry.getKey();
-                                maxCount = entry.getValue();
-                            }
-                        }
-
-                        // 設置 foodclass 的內容為出現次數最多的元素
-                        if (mostFrequentResult != null) {
-                            foodclass.setText(mostFrequentResult);
-                            foodTagsEditText.setText(mostFrequentResult);
-                            SharedPreferencesUtils.saveVideotag(upload.this, mostFrequentResult);
-
-
-                        } else {
-                            foodclass.setText("No result found"); // 如果沒有結果，可以設置一個默認值
-                        }
-
-                        try {
-                            retriever.release(); // 释放资源
-                        } catch (IOException e) {
-                            throw new RuntimeException(e);
-                        }
-                        setCurrentDate();
-                    }
-
-                } else if (result.getData().getClipData() != null) {
-                    // 用戶選擇了多張照片
-
-                    ClipData clipData = result.getData().getClipData();
-                    List<Uri> imageUris = new ArrayList<>();
-                    for (int i = 0; i < clipData.getItemCount(); i++) {
-                        imageUris.add(clipData.getItemAt(i).getUri());
-                    }
-                    //handleImageSelection(imageUris);
+            if (result.getResultCode() == RESULT_OK && result.getData() != null && result.getData().getData() != null) {                Uri selectedUri = null;
+                if (result.getResultCode() == REQUEST_VIDEO_CAPTURE) {
+                    // 用戶拍攝了新影片
+                    selectedUri = result.getData().getData();
+                } else {
+                    selectedUri = result.getData().getData();
                 }
-            } else {
-                Toast.makeText(upload.this, "please select a video or image", Toast.LENGTH_SHORT).show();
-            }
 
+                if (selectedUri != null) {
+                    String fileType = getContentResolver().getType(selectedUri);
+                    if (fileType != null) {
+                        if (fileType.startsWith("image/")) {
+                            // 用戶選擇了照片
+                            List<Uri> imageUris = new ArrayList<>();
+                            imageUris.add(selectedUri);
+                            handleImageSelection(imageUris);
+                        } else if (fileType.startsWith("video/")) {
+                            // 用戶選擇了現有影片
+                            Log.d("現有影片","1");
+
+                            Bitmap image = null;
+                            Bitmap image2 = null;//
+                            Bitmap image3 = null;//
+                            Bitmap image4 = null;
+                            Bitmap image5 = null;
+                            Bitmap image6 = null;
+
+                            uploadvideo.setEnabled(true);
+                            video = selectedUri;
+                            // 使用 MediaMetadataRetriever 获取视频的预览图像
+                            MediaMetadataRetriever retriever = new MediaMetadataRetriever();
+                            retriever.setDataSource(upload.this, video);
+                            Bitmap bitmap = retriever.getFrameAtTime(); // 获取视频的第一帧图像
+                            videopreview.setImageBitmap(bitmap);
+                            //這裡要不要讓他可以看整個影片，不要只是第一幀?
+
+                            image = retriever.getFrameAtTime(5 * 1000000, MediaMetadataRetriever.OPTION_CLOSEST_SYNC);//第一張在第5秒
+                            image2 = retriever.getFrameAtTime(10 * 1000000, MediaMetadataRetriever.OPTION_CLOSEST_SYNC);//第二張在第10秒
+                            image3 = retriever.getFrameAtTime(15 * 1000000, MediaMetadataRetriever.OPTION_CLOSEST_SYNC);//第三張在第15秒
+                            image4 = retriever.getFrameAtTime(20 * 1000000, MediaMetadataRetriever.OPTION_CLOSEST_SYNC);
+                            image5 = retriever.getFrameAtTime(25 * 1000000, MediaMetadataRetriever.OPTION_CLOSEST_SYNC);
+                            image6 = retriever.getFrameAtTime(30 * 1000000, MediaMetadataRetriever.OPTION_CLOSEST_SYNC);
+
+                            image = Bitmap.createScaledBitmap(image, imageSize, imageSize, false);
+                            image2 = Bitmap.createScaledBitmap(image2, imageSize, imageSize, false);
+                            image3 = Bitmap.createScaledBitmap(image3, imageSize, imageSize, false);
+                            image4 = Bitmap.createScaledBitmap(image4, imageSize, imageSize, false);
+                            image5 = Bitmap.createScaledBitmap(image5, imageSize, imageSize, false);
+                            image6 = Bitmap.createScaledBitmap(image6, imageSize, imageSize, false);
+
+                            String[] resultdachi = new String[6];
+                            classifyImage(image);//辨識
+                            resultdachi[0] = (String) foodclass.getText();
+                            classifyImage(image2);//
+                            resultdachi[1] = (String) foodclass.getText();
+                            classifyImage(image3);//
+                            resultdachi[2] = (String) foodclass.getText();
+                            classifyImage(image4);//辨識
+                            resultdachi[3] = (String) foodclass.getText();
+                            classifyImage(image5);//辨識
+                            resultdachi[4] = (String) foodclass.getText();
+                            classifyImage(image6);//辨識
+                            resultdachi[5] = (String) foodclass.getText();
+                            //textView.setText(resultdachi[0]+","+resultdachi[1]+","+resultdachi[2]);
+
+                            // 使用 HashMap 來計算 resultdachi 中每個元素出現的次數
+                            HashMap<String, Integer> countMap = new HashMap<>();
+                            for (String foodclass : resultdachi) {
+                                if (countMap.containsKey(result)) {
+                                    countMap.put(foodclass, countMap.get(result) + 1);
+                                } else {
+                                    countMap.put(foodclass, 1);
+                                }
+                            }
+
+                            // 找出出現次數最多的元素
+                            String mostFrequentResult = null;
+                            int maxCount = 0;
+                            for (Map.Entry<String, Integer> entry : countMap.entrySet()) {
+                                if (entry.getValue() > maxCount) {
+                                    mostFrequentResult = entry.getKey();
+                                    maxCount = entry.getValue();
+                                }
+                            }
+
+                            // 設置 foodclass 的內容為出現次數最多的元素
+                            if (mostFrequentResult != null) {
+                                foodclass.setText(mostFrequentResult);
+                                foodTagsEditText.setText(mostFrequentResult);
+                                SharedPreferencesUtils.saveVideotag(upload.this, mostFrequentResult);
+
+
+                            } else {
+                                foodclass.setText("No result found"); // 如果沒有結果，可以設置一個默認值
+                            }
+
+                            try {
+                                retriever.release(); // 释放资源
+                            } catch (IOException e) {
+                                throw new RuntimeException(e);
+                            }
+                            setCurrentDate();
+                        }
+                    }
+                }
+            }
         }
     });
-//    private void handleImageSelection(List<Uri> imageUris) {
-//        // 创建VideoConverter对象
-//        VideoConverter videoConverter = new VideoConverter(upload.this);
-//        videoConverter.convertImagesToVideo(imageUris, 5, new VideoConverter.VideoConversionCallback() {
-//            @Override
-//            public void onVideoConversionSuccess(Uri videoUri) {
-//                // 图像转换成功后的逻辑，例如上传视频等
-//                video = videoUri;
-//                uploadvideo.setEnabled(true);
-//
-//                // 使用 MediaMetadataRetriever 獲取視頻的預覽圖像
-//                MediaMetadataRetriever retriever = new MediaMetadataRetriever();
-//                retriever.setDataSource(upload.this, video);
-//                Bitmap bitmap = retriever.getFrameAtTime();
-//                videopreview.setImageBitmap(bitmap);
-//
-//                try {
-//                    retriever.release();
-//                } catch (IOException e) {
-//                    throw new RuntimeException(e);
-//                }
-//            }
-//
-//
-//            @Override
-//            public void onVideoConversionFailure(String errorMessage) {
-//                // 图像转换失败后的逻辑，例如显示错误信息等
-//                Toast.makeText(upload.this, errorMessage, Toast.LENGTH_SHORT).show();
-//            }
-//        });
-//    }
+    private void handleVideoSelection(Uri videoUri) {
+        uploadvideo.setEnabled(true);
 
 
+        // 使用 MediaMetadataRetriever 获取视频的预览图像
+        MediaMetadataRetriever retriever = new MediaMetadataRetriever();
+        retriever.setDataSource(upload.this, video);
+        Bitmap bitmap = retriever.getFrameAtTime(); // 获取视频的第一帧图像
+        videopreview.setImageBitmap(bitmap);
+
+        // 將影片的 URL 儲存起來，這裡假設你已經有一個名為 videoUrl 的成員變量
+        // 可以將其設置為影片的 URL
+        video = videoUri;
+    }
+    private void handleImageSelection(List<Uri> imageUris) {
+        int videoWidth = 720;
+        int videoHeight = 1280;
+        int videoBitrate = 2000000; // 2Mbps
+        int frameRate = 30;
+        int delayTimeMs = 5000; // 每张照片播放5秒
+
+        try {
+
+
+            // 初始化 MediaMuxer、MediaCodec 和 MediaExtractor
+            MediaMuxer muxer = new MediaMuxer(getOutputMediaFile().getAbsolutePath(), MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4);
+            MediaCodec encoder = MediaCodec.createEncoderByType(MediaFormat.MIMETYPE_VIDEO_AVC);
+            MediaExtractor extractor = new MediaExtractor();
+
+            // 设置 MediaFormat 并配置 MediaCodec
+            MediaFormat format = MediaFormat.createVideoFormat(MediaFormat.MIMETYPE_VIDEO_AVC, videoWidth, videoHeight);
+            format.setInteger(MediaFormat.KEY_COLOR_FORMAT, MediaCodecInfo.CodecCapabilities.COLOR_FormatSurface);
+            format.setInteger(MediaFormat.KEY_BIT_RATE, videoBitrate);
+            format.setInteger(MediaFormat.KEY_FRAME_RATE, frameRate);
+            format.setInteger(MediaFormat.KEY_I_FRAME_INTERVAL, frameRate);
+            encoder.configure(format, null, null, MediaCodec.CONFIGURE_FLAG_ENCODE);
+
+            // 开始编码每张照片
+            encoder.start();
+            int trackIndex = muxer.addTrack(format);
+            muxer.start();
+            long presentationTimeUs = 0;
+
+            for (Uri uri : imageUris) {
+                Log.d("upload", "imageUris");
+                MediaFormat trackFormat = MediaFormat.createVideoFormat("video/avc", videoWidth, videoHeight);
+                ByteBuffer inputBuffer = getImageBytes(uri, trackFormat);
+
+                MediaCodec.BufferInfo bufferInfo = new MediaCodec.BufferInfo();
+                bufferInfo.offset = 0;
+                bufferInfo.size = inputBuffer.remaining();
+                bufferInfo.presentationTimeUs = presentationTimeUs;
+                bufferInfo.flags = MediaCodec.BUFFER_FLAG_KEY_FRAME;
+
+                // 编码器输入
+                int inputBufferId = encoder.dequeueInputBuffer(TIMEOUT_USEC);
+                if (inputBufferId >= 0) {
+                    Log.d("upload", "inputBufferId");
+                    ByteBuffer dstBuffer = encoder.getInputBuffer(inputBufferId);
+                    dstBuffer.clear();
+                    dstBuffer.put(inputBuffer);
+                    encoder.queueInputBuffer(inputBufferId, 0, inputBuffer.remaining(), bufferInfo.presentationTimeUs, bufferInfo.flags);
+                }
+
+                // 获取编码器输出
+                MediaCodec.BufferInfo outBufferInfo = new MediaCodec.BufferInfo();
+                int outputBufferId = encoder.dequeueOutputBuffer(outBufferInfo, TIMEOUT_USEC);
+                while (outputBufferId >= 0) {
+                    Log.d("upload", "outputBufferId");
+
+                    ByteBuffer encodedData = encoder.getOutputBuffer(outputBufferId);
+                    if (outBufferInfo.size > 0) {
+                        Log.d("upload", "outBufferInfo");
+
+                        encodedData.position(outBufferInfo.offset);
+                        encodedData.limit(outBufferInfo.offset + outBufferInfo.size);
+                        muxer.writeSampleData(trackIndex, encodedData, outBufferInfo);
+                    }
+                    encoder.releaseOutputBuffer(outputBufferId, false);
+                    outputBufferId = encoder.dequeueOutputBuffer(outBufferInfo, TIMEOUT_USEC);
+                }
+
+                presentationTimeUs += delayTimeMs * 1000; // 更新下一张照片的时间戳
+            }
+            Log.d("upload", "成功");
+
+            // 释放资源
+            extractor.release();
+            encoder.stop();
+            encoder.release();
+            muxer.stop();
+            muxer.release();
+        } catch (IOException e) {
+            Log.e("upload", "IOException: " + e.getMessage());
+
+            e.printStackTrace();
+        }
+    }
+
+    private ByteBuffer getImageBytes(Uri uri, MediaFormat trackFormat) {
+        // 從 Uri 獲取圖片的 ByteBuffer
+        // 您可以使用 BitmapFactory.decodeStream 等方法將圖片解碼為 Bitmap
+        // 然後將 Bitmap 轉換為 ByteBuffer
+        // 這裡僅提供一個示例，您需要根據實際情況實現此方法
+        int maxBufferSize = trackFormat.getInteger(MediaFormat.KEY_MAX_INPUT_SIZE);
+        ByteBuffer inputBuffer = ByteBuffer.allocate(maxBufferSize);
+        // 將圖片數據填充到 inputBuffer 中
+        return inputBuffer;
+    }
+    private int getTrackIndex(MediaExtractor extractor, String mimeType) {
+        // 獲取指定 MIME 類型的軌道索引
+        // 您可以參考 Android 官方文檔實現此方法
+        return 0; // 僅為示例，請自行實現
+    }
+    private File getOutputMediaFile() {
+        File mediaStorageDir = new File(Environment.getExternalStoragePublicDirectory(
+                Environment.DIRECTORY_MOVIES), "MyVideos");
+
+        // Create the storage directory if it does not exist
+        if (!mediaStorageDir.exists()) {
+            if (!mediaStorageDir.mkdirs()) {
+                Log.d("upload", "failed to create directory");
+                return null;
+            }
+        }
+
+        // Create a media file name
+        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(new Date());
+        File mediaFile;
+        mediaFile = new File(mediaStorageDir.getPath() + File.separator +
+                "VID_" + timeStamp + ".mp4");
+        return mediaFile;
+    }
 
 
     private boolean isVideoValid(Uri uri) {
@@ -481,7 +628,7 @@ public class upload extends AppCompatActivity{
                     }
                 }
                 String nextVid = "V" + (maxId + 1);
-                String nextVideocont = "Cont"+(maxId + 1);
+                String nextVideocont = "cont"+(maxId + 1);
                 // 在這裡可以使用 nextVid 做後續處理，例如將其新增到 Firebase 中
                 // 或者將 nextVid 傳遞給其他方法
                 newVid = nextVid;  //影片編號
@@ -511,6 +658,10 @@ public class upload extends AppCompatActivity{
                         DatabaseReference foodtagsRef = videoRef.child("Foodtags");
                         videoRef.child("videoUrl").setValue(downloadUri.toString());
 
+                        //弄個May
+                        DatabaseReference database = FirebaseDatabase.getInstance().getReference();
+                        DatabaseReference mayRef = database.child("May");
+
                         // 獲取並解析食物標籤
                         String foodTags = foodTagsEditText.getText().toString();
                         String[] tagsArray = foodTags.split("[,，]");
@@ -520,11 +671,65 @@ public class upload extends AppCompatActivity{
                         String price = priceEditText.getText().toString();
                         String date = selectedDateEditText.getText().toString(); // 獲取日期的毫秒值
                         String desc = descriptionEditText.getText().toString();
+
+//                        //這裡開始
+//
+//                        // 解析日期字符串並獲取月份
+//                        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+//                        Date dateformated;
+//                        try {
+//                            dateformated = dateFormat.parse(date);
+//                        } catch (ParseException e) {
+//                            e.printStackTrace();
+//                            return; // 無法解析日期字符串,直接返回
+//                        }
+//                        Calendar calendar = Calendar.getInstance();
+//                        calendar.setTime(dateformated);
+//                        int month = calendar.get(Calendar.MONTH) + 1; // 月份從 0 開始,所以加 1
+//                        int year = calendar.get(Calendar.YEAR);
+//                        String monthNodeName = year + "_" + String.format("%02d", month); // 例如: 2023_05
+//
+//                        //獲取月份節點的引用
+//                        DatabaseReference database = FirebaseDatabase.getInstance().getReference();
+//                        DatabaseReference monthRef = database.child(monthNodeName);
+//
+//                        //結束
+
                         // 將食物標籤存儲到 Realtime Database 中
                         int count = 1;
                         for (String tag : tagsArray) {
+                            //增加影片tag的地方
                             String key = "Foodtag" + count;
                             foodtagsRef.child(key).setValue(tag.trim());
+//
+//                            //更新對應月份節點中的標籤計數
+//                            monthRef.child(tag.trim()).addListenerForSingleValueEvent(new ValueEventListener() {
+//                                @Override
+//                                public void onDataChange(@NonNull DataSnapshot snapshot) {
+//                                    int currentCount = snapshot.getValue(Integer.class) != null ? snapshot.getValue(Integer.class) : 0;
+//                                    monthRef.child(tag.trim()).setValue(currentCount + 1);
+//                                }
+//
+//                                @Override
+//                                public void onCancelled(@NonNull DatabaseError error) {
+//                                    // 處理錯誤
+//                                }
+//                            });
+
+                            //May加tag
+                            mayRef.child(tag.trim()).addListenerForSingleValueEvent(new ValueEventListener() {
+                                @Override
+                                public void onDataChange(@NonNull DataSnapshot snapshot) {
+                                    int currentCount = snapshot.getValue(Integer.class) != null ? snapshot.getValue(Integer.class) : 0;
+                                    mayRef.child(tag.trim()).setValue(currentCount + 1);
+                                }
+
+                                @Override
+                                public void onCancelled(@NonNull DatabaseError error) {
+                                    // 處理錯誤
+                                }
+                            });
+
                             count++;
                         }
                         //這邊是上傳在Video裡面的東西
@@ -553,21 +758,30 @@ public class upload extends AppCompatActivity{
                                 picReference.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
                                     @Override
                                     public void onSuccess(Uri uri) {
-                                        videoRef.child("videoPic").setValue(uri.toString());
+                                        String uriString = uri.toString();
+                                        videoRef.child("videoPic").setValue(uriString);//我想把這邊的值
+
+                                        String username = SharedPreferencesUtils.getUsername(upload.this);
+                                        videoRef.child("Uploader").setValue(username);
+
+                                        DatabaseReference userRef = FirebaseDatabase.getInstance().getReference().child("Users").child(username);
+                                        DatabaseReference newVideoRef = userRef.child("ownVideos").child(newVid);
+                                        newVideoRef.child("videoUrl").setValue(downloadUri.toString());
+                                        newVideoRef.child("videoPic").setValue(uriString);
                                     }
                                 });
                             }
                         });
 
 
-                        String username = SharedPreferencesUtils.getUsername(upload.this);
-                        videoRef.child("Uploader").setValue(username);
-
-                        //上傳者的個人檔案出現上傳影片的vid
-                        DatabaseReference userRef = FirebaseDatabase.getInstance().getReference().child("Users").child(username);
-                        DatabaseReference newVideoRef = userRef.child("ownVideos").child(newVid);
-                        newVideoRef.child("videoUrl").setValue(downloadUri.toString());
-                        newVideoRef.child("videoPic").setValue(""); //這個給黃建成寫
+//                        String username = SharedPreferencesUtils.getUsername(upload.this);
+//                        videoRef.child("Uploader").setValue(username);
+//
+//                        //上傳者的個人檔案出現上傳影片的vid
+//                        DatabaseReference userRef = FirebaseDatabase.getInstance().getReference().child("Users").child(username);
+//                        DatabaseReference newVideoRef = userRef.child("ownVideos").child(newVid);
+//                        newVideoRef.child("videoUrl").setValue(downloadUri.toString());
+//                        newVideoRef.child("videoPic").setValue(""); //這個給黃建成寫
                         //所有使用者增加cont
                         DatabaseReference usersRef = FirebaseDatabase.getInstance().getReference().child("Users");
                         usersRef.addListenerForSingleValueEvent(new ValueEventListener() {
@@ -575,8 +789,7 @@ public class upload extends AppCompatActivity{
                             public void onDataChange(@NonNull DataSnapshot snapshot) {
                                 for (DataSnapshot userSnapshot : snapshot.getChildren()) {
                                     String userId = userSnapshot.getKey();
-                                    DatabaseReference userContRef = usersRef.child(userId).child(newcont);
-                                    userContRef.child("Fav").setValue(false);
+                                    DatabaseReference userContRef = usersRef.child(userId).child("Cont").child(newcont);                                    userContRef.child("Fav").setValue(false);
                                     userContRef.child("Tag").setValue(false);
                                 }
                             }

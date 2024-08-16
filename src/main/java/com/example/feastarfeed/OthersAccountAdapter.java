@@ -35,14 +35,7 @@ public class OthersAccountAdapter extends RecyclerView.Adapter<OthersAccountAdap
     public void onBindViewHolder(@NonNull MyViewHolder holder, int position) {
         String imageUrl = arrayList.get(position);
         Glide.with(context).load(imageUrl).into(holder.imageView);
-        holder.itemView.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                if (onItemClickListener != null) {
-                    onItemClickListener.onClick(arrayList.get(position));
-                }
-            }
-        });
+        holder.itemView.setOnClickListener(view -> onItemClickListener.onClick(arrayList.get(position),position));
     }
 
     @Override
@@ -64,7 +57,7 @@ public class OthersAccountAdapter extends RecyclerView.Adapter<OthersAccountAdap
     }
 
     public interface OnItemClickListener {
-        void onClick(String string);
+        void onClick(String string, int position);
     }
 }
 

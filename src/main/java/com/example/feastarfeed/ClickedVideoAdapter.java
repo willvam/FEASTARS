@@ -12,16 +12,13 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide;
 
 import java.util.ArrayList;
-import java.util.List;
 
-public class RecyclerviewAdapter extends RecyclerView.Adapter<RecyclerviewAdapter.MyViewHolder> {
-
+public class ClickedVideoAdapter extends RecyclerView.Adapter<ClickedVideoAdapter.MyViewHolder> {
     ArrayList<String> arrayList;
     Context context;
-
     OnItemClickListener onItemClickListener;
 
-    public RecyclerviewAdapter(Context context, ArrayList<String> arrayList) {
+    public ClickedVideoAdapter(Context context, ArrayList<String> arrayList) {
         this.context = context;
         this.arrayList = arrayList;
     }
@@ -29,7 +26,7 @@ public class RecyclerviewAdapter extends RecyclerView.Adapter<RecyclerviewAdapte
     @NonNull
     @Override
     public MyViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View itemView = LayoutInflater.from(context).inflate(R.layout.item_image, parent, false);
+        View itemView = LayoutInflater.from(context).inflate(R.layout.preview_item, parent, false);
         return new MyViewHolder(itemView);
     }
 
@@ -39,7 +36,6 @@ public class RecyclerviewAdapter extends RecyclerView.Adapter<RecyclerviewAdapte
         String imageUrl = arrayList.get(position);
         Glide.with(context).load(imageUrl).into(holder.imageView);
         holder.itemView.setOnClickListener(view -> onItemClickListener.onClick(arrayList.get(position),position));
-
         //holder.imageView.setImageBitmap(arrayList.get(position).getBitmap());
     }
 
@@ -53,7 +49,7 @@ public class RecyclerviewAdapter extends RecyclerView.Adapter<RecyclerviewAdapte
 
         public MyViewHolder(@NonNull View itemView) {
             super(itemView);
-            imageView = itemView.findViewById(R.id.imageView);
+            imageView = itemView.findViewById(R.id.imageViewP);
 
         }
 
@@ -66,6 +62,4 @@ public class RecyclerviewAdapter extends RecyclerView.Adapter<RecyclerviewAdapte
     public interface OnItemClickListener {
         void onClick(String string, int position);
     }
-
 }
-

@@ -40,7 +40,6 @@ import java.util.Map;
 public class OthersAccountFragment extends Fragment {
 
     private RecyclerView rvVideoPreview;
-    public static List<Video> videoList;
     private DatabaseReference personalvideoRef;
     private TextView usernameTextView, bioTextView;
     private DatabaseReference userRef;
@@ -54,13 +53,15 @@ public class OthersAccountFragment extends Fragment {
     String uploader;
 
     private long parameterRecom=4;//選擇喜好分數前幾名的加入輪盤
-    public static List<WheelItem> wheelItems;
+
 
     OthersAccountAdapter othersAccountAdapter;
 
     DatabaseReference videoNameRef = FirebaseDatabase.getInstance().getReference("Videos");
 
+    public static String string = "others";
 
+    public static List<Video> videoList, videoListClicked;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -72,6 +73,9 @@ public class OthersAccountFragment extends Fragment {
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         View view =  inflater.inflate(R.layout.fragment_other_account, container, false);
+
+        ClickedFragment.string = string;
+
         LinearLayoutManager layoutManager = new LinearLayoutManager(getContext(),LinearLayoutManager.HORIZONTAL,false);
         Bundle args = getArguments();
         if (args != null) {
@@ -85,9 +89,9 @@ public class OthersAccountFragment extends Fragment {
         rvVideoPreview = view.findViewById(R.id.rvVideoPreview);
         usernameTextView = view.findViewById(R.id.username);
         FollowedButton = view.findViewById(R.id.followed);
+
         videoList = new ArrayList<>();
         previewArrayList = new ArrayList<>();
-
         rvVideoPreview.setLayoutManager(layoutManager);
         othersAccountAdapter = new OthersAccountAdapter(getContext(),previewArrayList);
         rvVideoPreview.setAdapter(othersAccountAdapter);
@@ -133,9 +137,20 @@ public class OthersAccountFragment extends Fragment {
 
         othersAccountAdapter.setOnItemClickListener(new OthersAccountAdapter.OnItemClickListener() {
             @Override
-            public void onClick(String string) {
-                Intent intent = new Intent(requireActivity(), OthersAccountVideoActivity.class);
-                startActivity(intent);
+            public void onClick(String string, int position) {
+                Video video = videoList.get(position);
+                videoListClicked = new ArrayList<>();
+                videoListClicked.add(video);
+
+                //Intent intent = new Intent(requireActivity(),PersonalVideoActivity.class);
+                //startActivity(intent);
+
+                FragmentManager fragmentManager = requireActivity().getSupportFragmentManager();
+                FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+                fragmentTransaction.setCustomAnimations(R.anim.slide_in2, R.anim.slide_out2);
+                fragmentTransaction.replace(R.id.frame_layout, new ClickedFragment());
+                fragmentTransaction.addToBackStack(null);
+                fragmentTransaction.commit();
             }
         });
 

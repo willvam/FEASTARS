@@ -25,8 +25,9 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 
-public class MainActivity extends AppCompatActivity implements TagFragment.OnCountChangeListener, MealSuggestFragment.OnCountChangeListenerPop ,HomeFragment.OnUploaderClickListener
-//VideoAdapter.OnUploaderClickListener
+import java.util.List;
+
+public class MainActivity extends AppCompatActivity implements TagFragment.OnCountChangeListener, MealSuggestFragment.OnCountChangeListenerPop, HomeFragment.OnUploaderClickListener
 {
     ActivityMainBinding binding;
 
@@ -81,6 +82,8 @@ public class MainActivity extends AppCompatActivity implements TagFragment.OnCou
 
         TagFragment tagFragment = new TagFragment();
         tagFragment.setOnCountChangeListener(this);
+
+        //accountFragment.setOnCountChangeListener(this);
 
 //        VideoAdapter videoAdapter = new VideoAdapter();
 //        videoAdapter.setOnCountChangedotherListener(this);
@@ -139,6 +142,7 @@ public class MainActivity extends AppCompatActivity implements TagFragment.OnCou
         searchFragment.setArguments(bundle); // 将 Bundle 设置为 Fragment 的参数
         replaceFragment(searchFragment); // 切换到 SearchFragment
     }
+
 //    @Override
 //    public void onCountChangedother(String uploader) {
 //        OthersAccountFragment othersAccount = new OthersAccountFragment();
@@ -195,4 +199,5 @@ public void onUploaderClicked(String uploader) {
             super.onBackPressed();
         }
     }
+
 }

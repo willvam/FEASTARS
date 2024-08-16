@@ -12,7 +12,7 @@ import com.google.firebase.database.FirebaseDatabase;
 
 import java.util.List;
 
-public class OthersAccountVideoActivity extends AppCompatActivity {
+public class OwnCollectionVideoActivity extends AppCompatActivity {
 
     private VideoAdapter adapter;
     FirebaseDatabase database = FirebaseDatabase.getInstance();

@@ -12,16 +12,13 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide;
 
 import java.util.ArrayList;
-import java.util.List;
 
-public class RecyclerviewAdapter extends RecyclerView.Adapter<RecyclerviewAdapter.MyViewHolder> {
-
+public class OwnCollectionAdapter extends RecyclerView.Adapter<OwnCollectionAdapter.MyViewHolder> {
     ArrayList<String> arrayList;
     Context context;
-
     OnItemClickListener onItemClickListener;
 
-    public RecyclerviewAdapter(Context context, ArrayList<String> arrayList) {
+    public OwnCollectionAdapter(Context context, ArrayList<String> arrayList) {
         this.context = context;
         this.arrayList = arrayList;
     }
@@ -29,7 +26,7 @@ public class RecyclerviewAdapter extends RecyclerView.Adapter<RecyclerviewAdapte
     @NonNull
     @Override
     public MyViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View itemView = LayoutInflater.from(context).inflate(R.layout.item_image, parent, false);
+        View itemView = LayoutInflater.from(context).inflate(R.layout.own_collection_item, parent, false);
         return new MyViewHolder(itemView);
     }
 
@@ -53,19 +50,17 @@ public class RecyclerviewAdapter extends RecyclerView.Adapter<RecyclerviewAdapte
 
         public MyViewHolder(@NonNull View itemView) {
             super(itemView);
-            imageView = itemView.findViewById(R.id.imageView);
+            imageView = itemView.findViewById(R.id.imageViewP);
 
         }
 
     }
 
-    public void setOnItemClickListener(OnItemClickListener onItemClickListener) {
+    public void setOnItemClickListener(OwnCollectionAdapter.OnItemClickListener onItemClickListener) {
         this.onItemClickListener = onItemClickListener;
     }
 
     public interface OnItemClickListener {
         void onClick(String string, int position);
     }
-
 }
-

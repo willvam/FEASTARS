@@ -52,6 +52,8 @@ public class VideoAdapter extends RecyclerView.Adapter<VideoAdapter.VideoViewHol
 
     public CommentAdapter commentAdapter;
     private HomeFragment.IdPassCallback idPassCallback;
+
+    private ClickedFragment.IdPassCallback idPassCallbackPersonal;
     private long id;
     private long parameterFav=10;
     private long parameterTAG=15;
@@ -94,7 +96,7 @@ private OnProfileImageClickListener onProfileImageClickListener;
 
 
 
-    public VideoAdapter(List<Video> VideoList, DatabaseReference videosRef, FragmentManager fragmentManager ,HomeFragment.IdPassCallback callback){
+    public VideoAdapter(List<Video> VideoList, DatabaseReference videosRef, FragmentManager fragmentManager , HomeFragment.IdPassCallback callback, ClickedFragment.IdPassCallback callback1){
         this.fragmentManager = fragmentManager;
         this.videoList = VideoList;
 
@@ -103,6 +105,7 @@ private OnProfileImageClickListener onProfileImageClickListener;
         pDatabase = database.getReference("Users");
         cmtDatabase = database.getReference("Comments");
         this.idPassCallback = callback;
+        this.idPassCallbackPersonal = callback1;
 
 
     }
@@ -111,6 +114,7 @@ private OnProfileImageClickListener onProfileImageClickListener;
         this.id = idPass;
         if (idPassCallback != null) {
             idPassCallback.onIdPassChanged(id);
+            idPassCallbackPersonal.onIdPassChanged(id);
         }
         Log.d("位置tag", String.valueOf(id));
         // 在这里根据需要进行相应的操作,比如刷新UI等
@@ -163,7 +167,7 @@ private OnProfileImageClickListener onProfileImageClickListener;
 
         //id = video.getId();
         //Log.d("位置tag", String.valueOf(id));
-        DatabaseReference videoLike = database.getReference("Users").child(username).child("Cont"+id).child("Fav");
+        DatabaseReference videoLike = database.getReference("Users").child(username).child("Cont").child("Cont"+id).child("Fav");
         videoLike.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
@@ -197,7 +201,7 @@ private OnProfileImageClickListener onProfileImageClickListener;
 
 
 
-        DatabaseReference videoTag = database.getReference("Users").child(username).child("Cont"+id).child("Tag");
+        DatabaseReference videoTag = database.getReference("Users").child(username).child("Cont").child("Cont"+id).child("Tag");
         videoTag.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
@@ -497,7 +501,7 @@ private OnProfileImageClickListener onProfileImageClickListener;
         });
     }
     public void toggleDoFav(int position, VideoViewHolder holder) {
-        DatabaseReference videoRef = database.getReference("Users").child(username).child("Cont"+id).child("Fav");
+        DatabaseReference videoRef = database.getReference("Users").child(username).child("Cont").child("Cont"+id).child("Fav");
         videoRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
@@ -587,7 +591,7 @@ private OnProfileImageClickListener onProfileImageClickListener;
 
 ////////////////////////////
     public void toggleDoTag(int position, VideoViewHolder holder) {
-        DatabaseReference videoRef = database.getReference("Users").child(username).child("Cont"+id).child("Tag");
+        DatabaseReference videoRef = database.getReference("Users").child(username).child("Cont").child("Cont"+id).child("Tag");
         videoRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {

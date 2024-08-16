@@ -28,9 +28,9 @@ import java.util.Map;
 public class CommentFragment extends Fragment {
 
     FirebaseDatabase database = FirebaseDatabase.getInstance();
-    public ArrayList<Comment> commentArrayList = HomeFragment.commentArrayList;
+    public ArrayList<Comment> commentArrayList;
 
-    public ArrayList<Comment> userArrayList = HomeFragment.userArrayList;
+    public ArrayList<Comment> userArrayList;
 
     public CommentAdapter commentAdapter;
 
@@ -39,6 +39,8 @@ public class CommentFragment extends Fragment {
     RecyclerView recyclerView;
 
     long page = HomeFragment.idpass1;
+
+    public static int num;
 
     public CommentFragment() {
         // Required empty public constructor
@@ -56,6 +58,14 @@ public class CommentFragment extends Fragment {
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         View view = inflater.inflate(R.layout.fragment_comment, container, false);
+
+        if (num == 0){
+            commentArrayList = HomeFragment.commentArrayList;
+            userArrayList = HomeFragment.userArrayList;
+        } else if (num == 1){
+            commentArrayList = ClickedFragment.commentArrayList;
+            userArrayList = ClickedFragment.userArrayList;
+        }
 
         recyclerView = view.findViewById(R.id.recyclerView1);
 
