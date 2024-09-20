@@ -15,19 +15,16 @@
     <RelativeLayout
         android:layout_width="115dp"
         android:layout_height="wrap_content"
-        android:padding="10sp">
+        android:padding="15sp">
 
         <TextView
             android:id="@+id/tag_text"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginStart="2sp"
-            android:layout_marginTop="5sp"
-            android:layout_marginEnd="5sp"
-            android:layout_marginBottom="5sp"
             android:text="義大利麵"
             android:singleLine="true"
             android:textSize="20sp"
+            android:textAlignment="center"
             android:textStyle="bold"
             android:gravity="center"
             android:background="?android:attr/selectableItemBackground" />

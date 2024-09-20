@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <Button
+        android:id="@+id/button1"
+        android:layout_width="80dp"
+        android:layout_height="60dp"
+        android:text="←"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        android:layout_alignParentEnd="true" />
+
+    <TextView
+        android:id="@+id/textview_chart3"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="廣告清單"
+        android:layout_below="@id/button1"
+        android:layout_centerHorizontal="true" />
+
+    <ListView
+        android:id="@+id/listView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@id/textview_chart3" />
+
+</RelativeLayout>

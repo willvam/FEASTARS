@@ -74,9 +74,9 @@ public class PersonalPage extends Fragment {
         personalvideoRef = FirebaseDatabase.getInstance().getReference("Users").child(username).child("ownVideos");
 
 
-        logoutButton = view.findViewById(R.id.logoutbutton);
-        BioButton = view.findViewById(R.id.bioButton);
-        BioCompleteButton = view.findViewById(R.id.bioCompleteButton);
+//        logoutButton = view.findViewById(R.id.logoutbutton);
+//        BioButton = view.findViewById(R.id.bioButton);
+//        BioCompleteButton = view.findViewById(R.id.bioCompleteButton);
         bioEditText.setText(bioTextView.getText().toString()); //
 
 
@@ -148,52 +148,52 @@ public class PersonalPage extends Fragment {
             }
         });
         Log.d("TTT", "測試測試 ");
-        loadVideosFromFirebase();
+//        loadVideosFromFirebase();
         Log.d("TTT", "測試測試 2");
         loadPreviews();
 
         return view;
     }
-    public void loadVideosFromFirebase() {
-        personalvideoRef.addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-
-                videoList.clear();
-
-                for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
-
-                    String title = snapshot.child("title").getValue(String.class);
-                    String address = snapshot.child("address").getValue(String.class);
-                    String date = snapshot.child("date").getValue(String.class);
-                    String price = snapshot.child("price").getValue(String.class);
-                    String videoUrl = snapshot.child("videoUrl").getValue(String.class);
-
-                    Long idprevention = snapshot.child("id").getValue(Long.class);
-                    long id = (idprevention != null) ? idprevention : 0; // 如果为空，则设置为默认值 0
-                    String uploader = snapshot.child("uploader").getValue(String.class);
-
-                    if (title == null || address == null || date == null || price == null || videoUrl == null || idprevention == null) {
-                        // 如果有任何一个字段为空，则跳过当前影片的处理 不然上傳會出錯
-                        continue;
-                    }
-                    Video video = new Video(videoUrl,title, address, date, price,id,uploader);
-                    videoList.add(video);
-                }
-                Collections.shuffle(videoList);
-//                adapter.notifyDataSetChanged();
-                Log.d("videoList", "經過了");
-                Log.d("videoList", String.valueOf(videoList.size()));
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError error) {
-                Log.e(TAG, "Failed to read value.", error.toException());
-            }
-
-
-        });
-    }
+//    public void loadVideosFromFirebase() {
+//        personalvideoRef.addValueEventListener(new ValueEventListener() {
+//            @Override
+//            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+//
+//                videoList.clear();
+//
+//                for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+//
+//                    String title = snapshot.child("title").getValue(String.class);
+//                    String address = snapshot.child("address").getValue(String.class);
+//                    String date = snapshot.child("date").getValue(String.class);
+//                    String price = snapshot.child("price").getValue(String.class);
+//                    String videoUrl = snapshot.child("videoUrl").getValue(String.class);
+//
+//                    Long idprevention = snapshot.child("id").getValue(Long.class);
+//                    long id = (idprevention != null) ? idprevention : 0; // 如果为空，则设置为默认值 0
+//                    String uploader = snapshot.child("uploader").getValue(String.class);
+//
+//                    if (title == null || address == null || date == null || price == null || videoUrl == null || idprevention == null) {
+//                        // 如果有任何一个字段为空，则跳过当前影片的处理 不然上傳會出錯
+//                        continue;
+//                    }
+//                    Video video = new Video(videoUrl,title, address, date, price,id,uploader);
+//                    videoList.add(video);
+//                }
+//                Collections.shuffle(videoList);
+////                adapter.notifyDataSetChanged();
+//                Log.d("videoList", "經過了");
+//                Log.d("videoList", String.valueOf(videoList.size()));
+//            }
+//
+//            @Override
+//            public void onCancelled(@NonNull DatabaseError error) {
+//                Log.e(TAG, "Failed to read value.", error.toException());
+//            }
+//
+//
+//        });
+//    }
 
     public void loadPreviews() {
         personalvideoRef.addValueEventListener(new ValueEventListener() {

@@ -2,6 +2,7 @@ package com.example.feastarfeed;
 
 import static android.app.Activity.RESULT_OK;
 
+import android.content.Context;
 import android.content.Intent;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
@@ -20,8 +21,10 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -50,10 +53,11 @@ public class AccountFragment extends Fragment {
 
     private RecyclerView rvVideoPreview;
     public static List<Video> videoList, videoListClicked;
-    private TextView usernameTextView, bioTextView,savevideoTextview,postTextview;
+    private TextView usernameTextView, bioTextView,savevideoTextview,postTextview,videotext;
     private DatabaseReference userRef,personalvideoRef,collectionRef,videoNameRef;
     private EditText bioEditText;
-    private Button logoutButton,BioButton,BioCompleteButton,LuckyWheel;
+
+    private ImageView BioButton,BioCompleteButton,logoutButton,LuckyWheel,FollowedButton;
     private  String username;
     private ArrayList<String> previewArrayList;
     private static final String TAG = "PersonalPage";
@@ -95,11 +99,13 @@ public class AccountFragment extends Fragment {
         bioEditText = view.findViewById(R.id.bioEditText);
         savevideoTextview =view.findViewById(R.id.Savedvideo);
         postTextview = view.findViewById(R.id.post_count);
-
+        videotext = view.findViewById(R.id.videotext);
         videoList = new ArrayList<>();
 
         rvVideoPreview = view.findViewById(R.id.rvVideoPreview);
         usernameTextView = view.findViewById(R.id.username);
+
+        FollowedButton = view.findViewById(R.id.Followers);
 
         previewArrayList = new ArrayList<>();
         LinearLayoutManager layoutManager = new LinearLayoutManager(getContext(),LinearLayoutManager.HORIZONTAL,false);
@@ -140,7 +146,16 @@ public class AccountFragment extends Fragment {
                 requireActivity().finish();
             }
         });
-
+        FollowedButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                FragmentManager fragmentManager = getChildFragmentManager();
+                FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+                fragmentTransaction.replace(R.id.frame_layout, new FollowListFragment());
+                fragmentTransaction.addToBackStack(null);
+                fragmentTransaction.commit();
+            }
+        });
         BioButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -166,6 +181,9 @@ public class AccountFragment extends Fragment {
                     BioButton.setVisibility(View.VISIBLE);
                     userRef.child(username).child("bio").setValue(newBio);
                     bioTextView.setText(newBio);
+
+                    InputMethodManager imm = (InputMethodManager) view.getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
+                    imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
                 }
             }
         });
@@ -252,11 +270,11 @@ public class AccountFragment extends Fragment {
 
                                     count++;
                                     if (color == 0){
-                                        wheelItems.add(new WheelItem(Color.parseColor("#FF0067"), BitmapFactory.decodeResource(getResources(),R.drawable.marker), title));
+                                        wheelItems.add(new WheelItem(Color.parseColor("#FAA300"), BitmapFactory.decodeResource(getResources(),R.drawable.food), title));
                                         color = 1 ;
                                     }
                                     else if (color == 1){
-                                        wheelItems.add(new WheelItem(Color.parseColor("#FFA5CA"), BitmapFactory.decodeResource(getResources(),R.drawable.marker),title));
+                                        wheelItems.add(new WheelItem(Color.parseColor("#F5DD61"), BitmapFactory.decodeResource(getResources(),R.drawable.food),title));
                                         color = 0;
                                     }
                                     break;
@@ -284,6 +302,7 @@ public class AccountFragment extends Fragment {
             @Override
             public void onClick(String string, int position) {
                 Video video = videoList.get(position);
+                Log.d("AcountFragment","position="+position);
                 videoListClicked = new ArrayList<>();
                 videoListClicked.add(video);
 
@@ -311,6 +330,18 @@ public class AccountFragment extends Fragment {
                 fragmentTransaction.commit();
             }
         });
+        videotext.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+
+                FragmentManager fragmentManager = requireActivity().getSupportFragmentManager();
+                FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+                fragmentTransaction.setCustomAnimations(R.anim.slide_in2, R.anim.slide_out2);
+                fragmentTransaction.replace(R.id.frame_layout, new OwnVideoFragment());
+                fragmentTransaction.addToBackStack(null);
+                fragmentTransaction.commit();
+            }
+        });
 
 
 
@@ -334,7 +365,8 @@ public class AccountFragment extends Fragment {
                         tagvideoIds.add(videoId); // 將 videoId 添加到陣列中
                     }
                 }
-                savevideoTextview.setText(tagvideos + "收藏");
+                String tagvideoString = Integer.toString(tagvideos);
+                savevideoTextview.setText(tagvideoString);
 
                 // 在這裡處理 videoIds 陣列
                 processVideoIds(tagvideoIds);
@@ -465,11 +497,12 @@ public class AccountFragment extends Fragment {
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
 
                 previewArrayList.clear(); // 清空列表
-
                 videoList.clear();
+
                 for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
                     post = post +1;
-                    postTextview.setText(post + "貼文");
+                    String postString = Integer.toString(post);
+                    postTextview.setText(postString);
                     String videoPic = snapshot.child("videoPic").getValue(String.class);
                     String videoName = snapshot.child("videoUrl").getValue(String.class);
                     previewArrayList.add(videoPic);
@@ -486,13 +519,25 @@ public class AccountFragment extends Fragment {
                                 String videoUrl = dataSnapshot1.child("videoUrl").getValue(String.class);
                                 Long id = dataSnapshot1.child("id").getValue(Long.class);
                                 String uploader = dataSnapshot1.child("Uploader").getValue(String.class);
-                                Log.d("AccountFragment", "videoUrl: " + videoUrl);
 
-                                if (videoUrl.equals(videoName)){
-                                    Video video = new Video(videoUrl,title, address, date, price, id, uploader);
-                                    videoList.add(video);
-                                    Log.d("previewArrayList", "previewArrayList: " + previewArrayList);
-                                    Log.d("VideoList", "videoList: " + videoList);
+                                if (videoUrl.equals(videoName)) {
+                                    // 根據 uploader 查詢 profileImageUrl
+                                    userRef.child(username).child("profileImageUrl").addListenerForSingleValueEvent(new ValueEventListener() {
+                                        @Override
+                                        public void onDataChange(@NonNull DataSnapshot snapshot) {
+                                            String profileImageUrl = snapshot.getValue(String.class);
+                                            Video video = new Video(videoUrl, title, address, date, price, id, uploader, profileImageUrl);
+                                            videoList.add(video);
+                                            Log.d("previewArrayList", "previewArrayList: " + previewArrayList);
+                                            Log.d("VideoList", "videoList: " + videoList);
+                                            personalPageAdapter.notifyDataSetChanged();
+                                        }
+
+                                        @Override
+                                        public void onCancelled(@NonNull DatabaseError error) {
+                                            // 處理錯誤
+                                        }
+                                    });
                                 }
                             }
                         }

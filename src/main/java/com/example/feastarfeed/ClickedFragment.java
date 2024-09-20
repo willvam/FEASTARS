@@ -28,7 +28,7 @@ public class ClickedFragment extends Fragment {
 
     DatabaseReference videosRef = database.getReference("Videos");
 
-    List<Video> videoList = AccountFragment.videoListClicked;
+    List<Video> videoList;
 
     Long idpass1;
 
@@ -72,15 +72,21 @@ public class ClickedFragment extends Fragment {
         View view = inflater.inflate(R.layout.fragment_clicked, container, false);
 
         TagFragment.num = num;
+        CommentFragment.num = num;
 
         if (string.equals("account")){
-            videoList = AccountFragment.videoList;
+            videoList = AccountFragment.videoListClicked;
         }else if (string.equals("search")){
-            videoList = Bottom_VIdeo_View.videoList;
+            videoList = Bottom_VIdeo_View.videoListClicked;
         } else if (string.equals("others")) {
-            videoList = OthersAccountFragment.videoList;
+            videoList = OthersAccountFragment.videoListClicked;
         }
-
+        else if(string.equals("collection")){
+            videoList = OwnCollectionFragment.videoListClicked;
+        }
+        else if(string.equals("ownvideo")){
+            videoList = OwnVideoFragment.videoListClicked;
+        }
         tagArrayList = new ArrayList<>();
 
         username = SharedPreferencesUtils.getUsername(requireContext());

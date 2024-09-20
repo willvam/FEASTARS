@@ -8,6 +8,7 @@ import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
+import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -40,14 +41,20 @@ public class OwnCollectionFragment extends Fragment {
     private String mParam2;
     private String username;
     private ArrayList<String> previewArrayList;
-    private DatabaseReference collectionRef;
+    private DatabaseReference collectionRef,userRef,videoNameRef;
+    private List<String> tagvideoIds = new ArrayList<>();
+
     private List<String> videoIds;
     public static List<Video> videoList,videoListClicked;
     private RecyclerView rvVideoPreview;
-
+    int tagvideos = 0;
     private LinearLayout containerLayout;
     private Map<String, List<String>> groupedVideos;
     OwnCollectionAdapter ownCollectionAdapter;
+
+    public static String string = "collection";
+
+
     int count =0;
 
     public OwnCollectionFragment() {
@@ -78,167 +85,109 @@ public class OwnCollectionFragment extends Fragment {
 
 
         ClickedFragment.string = string;
-
-        containerLayout = view.findViewById(R.id.containerLayout);
+        userRef = FirebaseDatabase.getInstance().getReference("Users");
         rvVideoPreview = view.findViewById(R.id.rvVideoPreview);
-
         username = SharedPreferencesUtils.getUsername(requireContext());
-        LinearLayoutManager layoutManager = new LinearLayoutManager(getContext(),LinearLayoutManager.HORIZONTAL,false);
+
+        GridLayoutManager layoutManager = new GridLayoutManager(getContext(), 3); // 每行3個項目
 
         videoList = new ArrayList<>();
         previewArrayList = new ArrayList<>();
         rvVideoPreview.setLayoutManager(layoutManager);
+
         ownCollectionAdapter = new OwnCollectionAdapter(getContext(),previewArrayList);
         rvVideoPreview.setAdapter(ownCollectionAdapter);
 
 
+        videoNameRef = FirebaseDatabase.getInstance().getReference("Videos");
 
         collectionRef = FirebaseDatabase.getInstance().getReference("Users").child(username).child("collection");
-//        loadVideoIds();
 
         ownCollectionAdapter.setOnItemClickListener(new OwnCollectionAdapter.OnItemClickListener() {
             @Override
             public void onClick(String string, int position) {
                 Video video = videoList.get(position);
+                Log.d("OwnCollectionFragment","position="+position);
+
                 videoListClicked = new ArrayList<>();
                 videoListClicked.add(video);
-
-                //Intent intent = new Intent(requireActivity(),PersonalVideoActivity.class);
-                //startActivity(intent);
 
                 FragmentManager fragmentManager = getChildFragmentManager();
                 FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
                 fragmentTransaction.setCustomAnimations(R.anim.slide_in2, R.anim.slide_out2);
-                fragmentTransaction.replace(R.id.OwnCollection_layout, new ClickedFragment());
+                fragmentTransaction.replace(R.id.clickedVideoContainer, new ClickedFragment());
                 fragmentTransaction.addToBackStack(null);
                 fragmentTransaction.commit();
 
             }
         });
+
         loadCollectionVideos();
         return view;
     }
-
-//    private void loadVideoIds() {
-//        collectionRef.addListenerForSingleValueEvent(new ValueEventListener() {
-//            @Override
-//            public void onDataChange(@NonNull DataSnapshot snapshot) {
-//                for (DataSnapshot childSnapshot : snapshot.getChildren()) {
-//                    String videoId = childSnapshot.getKey();
-//                    videoIds.add(videoId);
-//                }
-//                processVideoIds(videoIds);
-//                Log.d("collection", "loadVideoIds end");
-//
-//            }
-//
-//            @Override
-//            public void onCancelled(@NonNull DatabaseError error) {
-//                // 處理錯誤
-//            }
-//        });
-//    }
-//
-//    private void processVideoIds(List<String> videoIds) {
-//        groupedVideos = new HashMap<>();
-//
-//        for (String videoId : videoIds) {
-//            collectionRef.addListenerForSingleValueEvent(new ValueEventListener() {
-//                @Override
-//                public void onDataChange(@NonNull DataSnapshot snapshot) {
-//                    if (snapshot.exists()) {
-//
-//                        String date = snapshot.child("date").getValue(String.class);
-//                        if (date != null) {
-//                            String yearMonth = date.substring(0, 7); // 提取年份和月份
-//                            addVideoToGroup(yearMonth, videoId);
-//                        }
-//                    }
-//                }
-//
-//                @Override
-//                public void onCancelled(@NonNull DatabaseError error) {
-//                    // 處理錯誤
-//                }
-//            });
-//        }
-//    }
-//    private synchronized void addVideoToGroup(String yearMonth, String videoId) {
-//        if (groupedVideos.containsKey(yearMonth)) {
-//            groupedVideos.get(yearMonth).add(videoId);
-//        } else {
-//            List<String> videos = new ArrayList<>();
-//            videos.add(videoId);
-//            groupedVideos.put(yearMonth, videos);
-//        }
-//
-//        // 检查是否所有视频都已处理完毕，如果是，则显示结果
-//        if (groupedVideos.size() == videoIds.size()) {
-//            displayGroupedVideos();
-//        }
-//    }
-//
-//
-//
-//    private void displayGroupedVideos() {
-//        containerLayout.removeAllViews(); // 清空容器
-//
-//        for (Map.Entry<String, List<String>> entry : groupedVideos.entrySet()) {
-//            String yearMonth = entry.getKey();
-//            List<String> videos = entry.getValue();
-//
-//            // 創建 TextView
-//            TextView textView = new TextView(requireContext());
-//            textView.setText(yearMonth);
-//            textView.setTextSize(18);
-//            textView.setPadding(16, 16, 16, 16);
-//            containerLayout.addView(textView);
-//
-//            // 創建 RecyclerView
-//            RecyclerView recyclerView = new RecyclerView(requireContext());
-//            LinearLayoutManager layoutManager = new LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false);
-//            recyclerView.setLayoutManager(layoutManager);
-//            OwnCollectionAdapter adapter = new OwnCollectionAdapter(requireContext(), new ArrayList<>(videos));
-//            recyclerView.setAdapter(adapter);
-//            containerLayout.addView(recyclerView);
-//            Log.d("collection", "displayGroupedVideos end");
-//
-//        }
-//    }
-
     public void loadCollectionVideos() {
         collectionRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
 
                 previewArrayList.clear(); // 清空列表
-                videoList.clear();
 
+                videoList.clear();
                 for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
                     String videoPic = snapshot.child("videoPic").getValue(String.class);
                     String videoName = snapshot.child("videoUrl").getValue(String.class);
                     previewArrayList.add(videoPic);
-                  //  Log.d("OwnCollectionFragment", "videoName: " + videoName);
+                    Log.d("AccountFragment", "videoName: " + videoName);
 
-                    String title = snapshot.child("title").getValue(String.class);
-                    String address = snapshot.child("address").getValue(String.class);
-                    String date = snapshot.child("date").getValue(String.class);
-                    String price = snapshot.child("price").getValue(String.class);
-                    String videoUrl = snapshot.child("videoUrl").getValue(String.class);
-                    Long id = snapshot.child("id").getValue(Long.class);
-                    String uploader = snapshot.child("Uploader").getValue(String.class);
-                    Log.d("AccountFragment", "videoUrl: " + videoUrl);
+                    videoNameRef.addValueEventListener(new ValueEventListener() {
+                        @Override
+                        public void onDataChange(@NonNull DataSnapshot snapshot) {
+                            for (DataSnapshot dataSnapshot1 : snapshot.getChildren()){
+                                String title = dataSnapshot1.child("title").getValue(String.class);
+                                String address = dataSnapshot1.child("address").getValue(String.class);
+                                String date = dataSnapshot1.child("date").getValue(String.class);
+                                String price = dataSnapshot1.child("price").getValue(String.class);
+                                String videoUrl = dataSnapshot1.child("videoUrl").getValue(String.class);
+                                Long id = dataSnapshot1.child("id").getValue(Long.class);
+                                String uploader = dataSnapshot1.child("Uploader").getValue(String.class);
 
-                    Video video = new Video(videoUrl,title, address, date, price, id, uploader);
-                    videoList.add(video);
+                                if (videoUrl.equals(videoName)) {
+                                    // 根據 uploader 查詢 profileImageUrl
+                                    userRef.child(username).child("profileImageUrl").addListenerForSingleValueEvent(new ValueEventListener() {
+                                        @Override
+                                        public void onDataChange(@NonNull DataSnapshot snapshot) {
+                                            String profileImageUrl = snapshot.getValue(String.class);
+                                            Video video = new Video(videoUrl, title, address, date, price, id, uploader, profileImageUrl);
+                                            videoList.add(video);
+                                            Log.d("previewArrayList", "previewArrayList: " + previewArrayList);
+                                            Log.d("VideoList", "videoList: " + videoList);
+
+                                        }
+
+                                        @Override
+                                        public void onCancelled(@NonNull DatabaseError error) {
+                                            // 處理錯誤
+                                        }
+                                    });
+                                }
+                            }
+                        }
+
+                        @Override
+                        public void onCancelled(@NonNull DatabaseError error) {
+
+                        }
+                    });
+
                 }
                 ownCollectionAdapter.notifyDataSetChanged();
-            }
 
+            }
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
-                // 处理错误
+
             }
+
         });
     }
 

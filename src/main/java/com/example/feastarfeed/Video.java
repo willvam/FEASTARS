@@ -9,8 +9,10 @@ public class Video {
 
     private final Long id;
     private final String uploader;
+    private final String profileImageUrl;
 
-    public Video(String videoUrl, String title, String address, String date, String price, long id,String uploader) {
+
+    public Video(String videoUrl, String title, String address, String date, String price, long id,String uploader,String profileImageUrl) {
 
         if (videoUrl == null) {
             throw new IllegalArgumentException("VideoUrl cannot be null");
@@ -30,6 +32,9 @@ public class Video {
         if (uploader == null) {
             throw new IllegalArgumentException("uploader cannot be null");
         }
+        if (profileImageUrl == null) {
+            throw new IllegalArgumentException("profileImageUrl cannot be null");
+        }
 
         this.videoUrl = videoUrl;
         this.title = title;
@@ -38,6 +43,8 @@ public class Video {
         this.date = date;
         this.id = id;
         this.uploader = uploader;
+        this.profileImageUrl = profileImageUrl;
+
     }
 
     public String getVideoUrl() {
@@ -59,5 +66,7 @@ public class Video {
     public Long getId() { return id; }
 
     public String getUploader(){return uploader;}
+    public String getprofileImageUrl(){return profileImageUrl;}
+
 
 }

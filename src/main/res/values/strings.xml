@@ -6,4 +6,18 @@
     <string name="API_KEY">AIzaSyBJiZZZVX1857CpQvpsGUKpyOdmvHkJW3o</string>
     <string name="title_activity_bottom_video">BottomVideoActivity</string>
     <string name="back">back</string>
+    <string-array name="months_array">
+        <item>2024/01</item>
+        <item>2024/02</item>
+        <item>2024/03</item>
+        <item>2024/04</item>
+        <item>2024/05</item>
+        <item>2024/06</item>
+        <item>2024/07</item>
+        <item>2024/08</item>
+        <item>2024/09</item>
+        <item>2024/10</item>
+        <item>2024/11</item>
+        <item>2024/12</item>
+    </string-array>
 </resources>

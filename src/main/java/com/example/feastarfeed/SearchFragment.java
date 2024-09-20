@@ -129,12 +129,12 @@ public class SearchFragment extends Fragment implements GoogleMap.OnMarkerClickL
 
     FusedLocationProviderClient fusedLocationProviderClient;
 
-    boolean bottomVideoViewVisible = false;
+    public static boolean bottomVideoViewVisible = false;
 
 
     public static String placeName, placeAddress;
 
-    String foodTag,videoName;
+    String foodTag, videoName;
 
     int videoId;
 
@@ -159,7 +159,7 @@ public class SearchFragment extends Fragment implements GoogleMap.OnMarkerClickL
 
     PlaceAdapter placeAdapter;
 
-    int x=0, y=0, count=0, a=0, b=0, count1=0;
+    int x = 0, y = 0, count = 0, a = 0, b = 0, count1 = 0;
 
     String foodsTitle;
 
@@ -319,7 +319,7 @@ public class SearchFragment extends Fragment implements GoogleMap.OnMarkerClickL
         if (args != null && args.containsKey("tag")) {
             query = args.getString("tag", "");
         } else if (args != null && args.containsKey("text")) {
-            query = args.getString("text","");
+            query = args.getString("text", "");
             placeAdapter.getFilter().filter(query);
             listView.setVisibility(View.VISIBLE);
         }
@@ -341,40 +341,41 @@ public class SearchFragment extends Fragment implements GoogleMap.OnMarkerClickL
                 public void onDataChange(@NonNull DataSnapshot snapshot) {
                     for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
 
-                        Log.d("SearchFragment","x = "+x);
+                        Log.d("SearchFragment", "x = " + x);
                         videoName = dataSnapshot.child("title").getValue(String.class);
                         videoId = dataSnapshot.child("id").getValue(int.class);
 
-                        if (videoName != null && videoName.equals(query)){
-                            y=videoId;
+                        if (videoName != null && videoName.equals(query)) {
+                            y = videoId;
                             count++;
                         }
                         Iterable<DataSnapshot> dataSnapshotIterable = dataSnapshot.child("Foodtags").getChildren();
                         for (DataSnapshot dataSnapshot1 : dataSnapshotIterable) {
                             foodTag = dataSnapshot1.getValue(String.class);
-                            if (foodTag != null && foodTag.equals(query)){ y = videoId; count++; }
-                            Log.d("SearchFragment","count = "+count);
-                            Log.d("SearchFragment","y = "+y);
+                            if (foodTag != null && foodTag.equals(query)) {
+                                y = videoId;
+                                count++;
+                            }
+                            Log.d("SearchFragment", "count = " + count);
+                            Log.d("SearchFragment", "y = " + y);
                         }
 
-                        if (y != 0){
-                            DatabaseReference titleRef = Ref.child("V"+y).child("title");
+                        if (y != 0) {
+                            DatabaseReference titleRef = Ref.child("V" + y).child("title");
                             titleRef.addValueEventListener(new ValueEventListener() {
                                 @Override
                                 public void onDataChange(@NonNull DataSnapshot snapshot) {
                                     foodsTitle = snapshot.getValue(String.class);
-                                    if (!foodsTitle1.equals(foodsTitle)){
+                                    if (!foodsTitle1.equals(foodsTitle)) {
                                         foodsTitle1 = foodsTitle;
                                         foodsTitleArray.add(foodsTitle1);
-                                        Log.d("SearchFragment","foodstitle = "+foodsTitle);
-                                        Log.d("SearchFragment","foodsTitleArray.size() = "+foodsTitleArray.size());
-                                        if (foodsTitleArray.size() == count){
-                                            Log.d("SearchFragment","foodsArray = "+foodsTitleArray);
-                                            Log.d("placeAdapter","placeAdapter.getCount() = "+placeAdapter.getCount());
-                                            placeAdapter.filteredList.addAll(foodsTitleArray);
-                                            Log.d("placeAdapter","placeAdapter.filteredList = "+placeAdapter.filteredList);
-                                            placeAdapter.notifyDataSetChanged();
-                                        }
+                                        Log.d("SearchFragment", "foodstitle = " + foodsTitle);
+                                        Log.d("SearchFragment", "foodsTitleArray.size() = " + foodsTitleArray.size());
+                                        Log.d("SearchFragment", "foodsArray = " + foodsTitleArray);
+                                        Log.d("placeAdapter", "placeAdapter.getCount() = " + placeAdapter.getCount());
+                                        placeAdapter.filteredList.addAll(foodsTitleArray);
+                                        Log.d("placeAdapter", "placeAdapter.filteredList = " + placeAdapter.filteredList);
+                                        placeAdapter.notifyDataSetChanged();
                                     }
 
                                 }
@@ -418,31 +419,34 @@ public class SearchFragment extends Fragment implements GoogleMap.OnMarkerClickL
                     public void onDataChange(@NonNull DataSnapshot snapshot) {
                         for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
                             ++x;
-                            Log.d("SearchFragment","x = "+x);
+                            Log.d("SearchFragment", "x = " + x);
                             Iterable<DataSnapshot> dataSnapshotIterable = dataSnapshot.child("Foodtags").getChildren();
                             for (DataSnapshot dataSnapshot1 : dataSnapshotIterable) {
                                 foodTag = dataSnapshot1.getValue(String.class);
-                                if (foodTag != null && foodTag.equals(newText)){ y = x; count++; }
-                                Log.d("SearchFragment","count = "+count);
-                                Log.d("SearchFragment","y = "+y);
+                                if (foodTag != null && foodTag.equals(newText)) {
+                                    y = x;
+                                    count++;
+                                }
+                                Log.d("SearchFragment", "count = " + count);
+                                Log.d("SearchFragment", "y = " + y);
                             }
 
-                            if (y != 0){
-                                DatabaseReference titleRef = Ref.child("V"+y).child("title");
+                            if (y != 0) {
+                                DatabaseReference titleRef = Ref.child("V" + y).child("title");
                                 titleRef.addValueEventListener(new ValueEventListener() {
                                     @Override
                                     public void onDataChange(@NonNull DataSnapshot snapshot) {
                                         foodsTitle = snapshot.getValue(String.class);
-                                        if (!foodsTitle1.equals(foodsTitle)){
+                                        if (!foodsTitle1.equals(foodsTitle)) {
                                             foodsTitle1 = foodsTitle;
                                             foodsTitleArray.add(foodsTitle1);
-                                            Log.d("SearchFragment","foodstitle = "+foodsTitle);
-                                            Log.d("SearchFragment","foodsTitleArray.size() = "+foodsTitleArray.size());
-                                            if (foodsTitleArray.size() == count){
-                                                Log.d("SearchFragment","foodsArray = "+foodsTitleArray);
-                                                Log.d("placeAdapter","placeAdapter.getCount() = "+placeAdapter.getCount());
+                                            Log.d("SearchFragment", "foodstitle = " + foodsTitle);
+                                            Log.d("SearchFragment", "foodsTitleArray.size() = " + foodsTitleArray.size());
+                                            if (foodsTitleArray.size() == count) {
+                                                Log.d("SearchFragment", "foodsArray = " + foodsTitleArray);
+                                                Log.d("placeAdapter", "placeAdapter.getCount() = " + placeAdapter.getCount());
                                                 placeAdapter.filteredList.addAll(foodsTitleArray);
-                                                Log.d("placeAdapter","placeAdapter.filteredList = "+placeAdapter.filteredList);
+                                                Log.d("placeAdapter", "placeAdapter.filteredList = " + placeAdapter.filteredList);
                                                 placeAdapter.notifyDataSetChanged();
                                             }
                                         }

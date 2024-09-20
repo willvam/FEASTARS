@@ -28,7 +28,7 @@ public class MealSuggestFragment extends Fragment {
 
     List<WheelItem> wheelItemList;
 
-    Button start;
+    TextView start;
 
     String points, points_amount;
 
@@ -113,7 +113,7 @@ public class MealSuggestFragment extends Fragment {
             }
         });
 
-        Button btn = dialog.findViewById(R.id.button);
+        TextView btn = dialog.findViewById(R.id.button);
         btn.setOnClickListener(view -> {
             dialog.cancel();
 

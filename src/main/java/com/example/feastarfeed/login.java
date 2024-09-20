@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ProgressBar;
@@ -23,8 +24,7 @@ import java.util.HashMap;
 
 public class login extends AppCompatActivity {
     TextInputEditText editTextEmail, editTextPassword;
-    Button buttonLogin;
-    ProgressBar progressbar;
+    TextView buttonLogin;
     TextView textView;
 
     FirebaseDatabase database;
@@ -42,7 +42,6 @@ public class login extends AppCompatActivity {
         editTextEmail = findViewById(R.id.email);
         editTextPassword = findViewById(R.id.password);
         buttonLogin = findViewById(R.id.button_login);
-        progressbar = findViewById(R.id.progressBar);
         textView = findViewById(R.id.registerNow);
 
 
@@ -58,7 +57,6 @@ public class login extends AppCompatActivity {
         buttonLogin.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                progressbar.setVisibility(View.VISIBLE);
                 String email, password;
                 email = String.valueOf(editTextEmail.getText());
                 password = String.valueOf(editTextPassword.getText());
@@ -76,7 +74,7 @@ public class login extends AppCompatActivity {
                 // 檢查是否為 superuser
                 if (email.equals("superuser") && password.equals("superuser")) {
                     // 跳轉到 barchart Activity
-                    Intent intent = new Intent(login.this, barchart.class);
+                    Intent intent = new Intent(login.this, superuser.class);
                     startActivity(intent);
                     finish(); // 可選擇是否結束當前 Activity
                     return;
@@ -102,7 +100,6 @@ public class login extends AppCompatActivity {
                             }
                         }
 
-                        progressbar.setVisibility(View.GONE);
                         if (userFound) {
                             Toast.makeText(getApplicationContext(), "Login successful", Toast.LENGTH_SHORT).show();
 
@@ -134,7 +131,6 @@ public class login extends AppCompatActivity {
 
                     @Override
                     public void onCancelled(@NonNull DatabaseError error) {
-                        progressbar.setVisibility(View.GONE);
                         Toast.makeText(login.this, "Error: " + error.getMessage(), Toast.LENGTH_SHORT).show();
                     }
                 });
@@ -150,14 +146,14 @@ public class login extends AppCompatActivity {
 
         if (TextUtils.isEmpty(savedEmail) || TextUtils.isEmpty(savedPassword)) {
             // 如果本地沒有保存用戶資料,則直接返回
-            Toast.makeText(login.this, "沒近來", Toast.LENGTH_SHORT).show();
+            Log.d("login-autoLogin","autofail");
 
             return;
         }
 
         if (!TextUtils.isEmpty(savedEmail) && !TextUtils.isEmpty(savedPassword)) {
             // 如果存在保存的 email 和 password，則進行登錄驗證
-            Toast.makeText(login.this, "有近來", Toast.LENGTH_SHORT).show();
+            Log.d("login-autoLogin","autoaccess");
 
             performAutoLogin(savedEmail, savedPassword);
         }
@@ -181,10 +177,9 @@ public class login extends AppCompatActivity {
                     }
                 }
 
-                progressbar.setVisibility(View.GONE);
                 if (userFound) {
                     // 如果找到匹配的用户,则自动登录
-                    Toast.makeText(getApplicationContext(), "Auto Login successful", Toast.LENGTH_SHORT).show();
+                    Log.d("login-performAutoLogin","autoaccess");
                     // 传递 currentUserUsername 给 PersonalPage
 
                     AccountFragment accountFragment = new AccountFragment();
@@ -203,7 +198,6 @@ public class login extends AppCompatActivity {
 
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
-                progressbar.setVisibility(View.GONE);
                 Toast.makeText(login.this, "Error: " + error.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });

@@ -6,26 +6,54 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".MealSuggestFragment"
-    android:background="@color/cardview_dark_background">
+    android:background="@drawable/luckypage">
 
-    <com.bluehomestudio.luckywheel.LuckyWheel
-        android:id="@+id/lwv"
-        android:layout_width="400dp"
-        android:layout_height="400dp"
-        app:image_padding="20dp"
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
         android:layout_centerInParent="true"
-        LuckyWheel:background_color="#FF9885" />
+        android:background="@drawable/layout_bkg_6"
+        android:padding="20dp"
+        android:elevation="10dp">
 
-    <Button
-        android:id="@+id/start"
+        <com.bluehomestudio.luckywheel.LuckyWheel
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            android:id="@+id/lwv"
+            android:layout_width="300dp"
+            android:layout_height="300dp"
+            LuckyWheel:background_color="#FFFFFF"
+            app:arrow_image="@drawable/wheel_arrow"/>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_marginHorizontal="100dp"
+        android:layout_marginBottom="80dp"
+        android:id="@+id/con1"
         android:layout_width="match_parent"
-        android:layout_height="50dp"
-        android:layout_alignParentBottom="true"
-        android:layout_marginHorizontal="80dp"
-        android:layout_marginBottom="50dp"
-        android:background="@drawable/button_popup"
-        android:backgroundTintMode="add"
-        android:text="Start"
-        app:strokeColor="#E91E63" />
+        android:layout_height="wrap_content"
+        android:background="@drawable/layout_bkg_6"
+        android:elevation="5dp"
+        android:layout_alignParentBottom="true">
+
+        <TextView
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            android:id="@+id/start"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Start"
+            android:textSize="20dp"
+            android:textAlignment="center"
+            android:textColor="@color/white"
+            android:padding="10dp"
+            />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
 </RelativeLayout>

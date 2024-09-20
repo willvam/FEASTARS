@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="16dp"
+    tools:context=".MainActivity">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+        <Spinner
+            android:id="@+id/spinner_month"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:entries="@array/months_array" />
+
+        <TextView
+            android:id="@+id/titleTextView"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_gravity="start|center_vertical"
+            android:layout_weight="1"
+            android:text="熱門店家排行榜"
+            android:textSize="18sp"
+            android:textStyle="bold" />
+        <Button
+            android:id="@+id/button1"
+            android:layout_width="80dp"
+            android:layout_height="60dp"
+            android:text="←"
+            android:textSize="20sp"
+            android:textStyle="bold"/>
+
+
+    </LinearLayout>
+
+
+    <com.github.mikephil.charting.charts.BarChart
+        android:id="@+id/chart1"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1" />
+    <TextView
+        android:id="@+id/textview_chart1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="店家被上傳影片數(A)"
+        android:layout_gravity="center_horizontal"/>
+
+    <com.github.mikephil.charting.charts.BarChart
+        android:id="@+id/chart2"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1" />
+    <TextView
+        android:id="@+id/textview_chart2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="標記影片被按讚數(B)"
+        android:layout_gravity="center_horizontal"/>
+
+    <com.github.mikephil.charting.charts.BarChart
+        android:id="@+id/chart3"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1" />
+    <TextView
+        android:id="@+id/textview_chart3"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="標記影片被觀看數(C)"
+        android:layout_gravity="center_horizontal"/>
+
+    <com.github.mikephil.charting.charts.BarChart
+        android:id="@+id/chart4"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1" />
+    <TextView
+        android:id="@+id/textview_chart4"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="綜合評分(4*A+2*B+C)"
+        android:layout_gravity="center_horizontal"/>
+
+</LinearLayout>

@@ -85,12 +85,24 @@ public class SearchVideoActivity extends AppCompatActivity {
                     String videoUrl = snapshot.child("videoUrl").getValue(String.class);
                     Long id = snapshot.child("id").getValue(Long.class);
                     String uploader = snapshot.child("Uploader").getValue(String.class);
+                    DatabaseReference userRef= FirebaseDatabase.getInstance().getReference("Users");
 
-                    if (title.equals(placeTitle)){
-                        Log.d("SearchVideo","placeName:"+ placeTitle);
-                        Video video = new Video(videoUrl,title, address, date, price, id,uploader);
-                        videoList.add(video);
-                    }
+                    userRef.child(uploader).child("profileImageUrl").addListenerForSingleValueEvent(new ValueEventListener() {
+                        @Override
+                        public void onDataChange(@NonNull DataSnapshot snapshot) {
+                            String profileImageUrl = snapshot.getValue(String.class);
+                            if (title.equals(placeTitle)){
+                                Log.d("SearchVideo","placeName:"+ placeTitle);
+                                Video video = new Video(videoUrl,title, address, date, price, id,uploader,profileImageUrl);
+                                videoList.add(video);
+                            }
+                        }
+
+                        @Override
+                        public void onCancelled(@NonNull DatabaseError error) {
+                            // 處理錯誤
+                        }
+                    });
                 }
                 adapter.notifyDataSetChanged();
 

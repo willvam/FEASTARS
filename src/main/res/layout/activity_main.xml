@@ -20,12 +20,17 @@
 
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/bottomNavigationView"
-        android:layout_width="match_parent"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:menu="@menu/bottom_nav_menu" />
+        app:menu="@menu/bottom_nav_menu"
+        android:background="@drawable/bottom_bkg"
+        app:itemIconTint="@drawable/item_selector"
+        app:itemIconSize="28dp"
+        app:labelVisibilityMode="unlabeled"
+        app:itemRippleColor="@color/topic" />
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>

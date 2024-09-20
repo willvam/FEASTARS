@@ -2,6 +2,7 @@ package com.example.feastarfeed;
 
 import static android.content.ContentValues.TAG;
 
+import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
@@ -9,6 +10,8 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.inputmethod.InputMethodManager;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -43,6 +46,8 @@ public class Bottom_VIdeo_View extends Fragment {
 
     public static List<Video> videoList, videoListClicked;
 
+    boolean bottomVideoViewVisible;
+
     public Bottom_VIdeo_View() {
         // Required empty public constructor
     }
@@ -65,6 +70,48 @@ public class Bottom_VIdeo_View extends Fragment {
 
         TextView name = view.findViewById(R.id.text);
         TextView address = view.findViewById(R.id.text1);
+        ImageView googleMap = view.findViewById(R.id.googleMap);
+        ImageView close = view.findViewById(R.id.bar);
+
+        bottomVideoViewVisible = true;
+        FragmentManager fragmentManager = getParentFragmentManager();
+        Fragment bottomVideoViewFragment = fragmentManager.findFragmentById(R.id.frame_layout);
+
+        close.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (bottomVideoViewVisible) {
+                    FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+                    fragmentTransaction.setCustomAnimations(R.anim.slide_in, R.anim.slide_out);
+                    fragmentTransaction.remove(bottomVideoViewFragment);
+                    fragmentTransaction.commit();
+
+                    bottomVideoViewVisible = false;
+                    SearchFragment.bottomVideoViewVisible = false;
+
+                }
+            }
+        });
+
+        googleMap.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // 创建 Uri 对象，传递地址信息
+                Uri gmmIntentUri = Uri.parse("geo:0,0?q=" + Uri.encode(placeName));
+                // 创建 Intent 对象，设置动作为 VIEW，设置数据为 Uri 地址
+                Intent mapIntent = new Intent(Intent.ACTION_VIEW, gmmIntentUri);
+                // 设置 Intent 的包名为 Google 地图应用程序的包名
+                mapIntent.setPackage("com.google.android.apps.maps");
+                // 检查设备上是否安装了 Google 地图应用程序
+                if (mapIntent.resolveActivity(getActivity().getPackageManager()) != null) {
+                    // 如果安装了 Google 地图应用程序，则启动该应用程序
+                    startActivity(mapIntent);
+                } else {
+                    // 如果设备上没有安装 Google 地图应用程序，则显示提示信息
+                    Toast.makeText(getContext(), "未安装 Google 地图应用程序", Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
 
         name.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -137,22 +184,33 @@ public class Bottom_VIdeo_View extends Fragment {
                     Long id = snapshot.child("id").getValue(Long.class);
                     String uploader = snapshot.child("Uploader").getValue(String.class);
 
-                    if (title.equals(placeName)){
-                        Log.d("SearchVideo","placeName:"+ placeName);
-                        Video video = new Video(videoUrl,title, address, date, price, id,uploader);
-                        videoList.add(video);
+                    if (title.equals(placeName)) {
+                        Log.d("SearchVideo", "placeName:" + placeName);
+
+                        // 根據 uploader 查詢 profileImageUrl
+                        DatabaseReference userRef = FirebaseDatabase.getInstance().getReference().child("Users").child(uploader);
+                        userRef.child("profileImageUrl").addListenerForSingleValueEvent(new ValueEventListener() {
+                            @Override
+                            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                                String profileImageUrl = snapshot.getValue(String.class);
+                                Video video = new Video(videoUrl, title, address, date, price, id, uploader, profileImageUrl);
+                                videoList.add(video);
+                                adapter.notifyDataSetChanged();
+                            }
+
+                            @Override
+                            public void onCancelled(@NonNull DatabaseError error) {
+                                // 處理錯誤
+                            }
+                        });
                     }
                 }
-                //adapter.notifyDataSetChanged();
-
             }
 
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
-                Log.e(TAG, "Failed to read value.", error.toException());
+                // 處理錯誤
             }
-
-
         });
     }
 

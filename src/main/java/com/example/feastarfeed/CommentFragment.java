@@ -1,16 +1,20 @@
 package com.example.feastarfeed;
 
+import android.content.Context;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.ImageButton;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentTransaction;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -34,13 +38,13 @@ public class CommentFragment extends Fragment {
 
     public CommentAdapter commentAdapter;
 
-    DatabaseReference cmtDatabase = database.getReference("Comments");
-
     RecyclerView recyclerView;
 
     long page = HomeFragment.idpass1;
 
     public static int num;
+
+    boolean bottomVideoViewVisible;
 
     public CommentFragment() {
         // Required empty public constructor
@@ -59,10 +63,15 @@ public class CommentFragment extends Fragment {
         // Inflate the layout for this fragment
         View view = inflater.inflate(R.layout.fragment_comment, container, false);
 
-        if (num == 0){
+        bottomVideoViewVisible = true;
+
+        FragmentManager fragmentManager = getParentFragmentManager();
+        Fragment bottomVideoViewFragment = fragmentManager.findFragmentById(R.id.frame_layout1);
+
+        if (num == 0) {
             commentArrayList = HomeFragment.commentArrayList;
             userArrayList = HomeFragment.userArrayList;
-        } else if (num == 1){
+        } else if (num == 1) {
             commentArrayList = ClickedFragment.commentArrayList;
             userArrayList = ClickedFragment.userArrayList;
         }
@@ -77,7 +86,7 @@ public class CommentFragment extends Fragment {
 
         ImageButton newButton = view.findViewById(R.id.newButton);
 
-        DatabaseReference cmtRef = database.getReference("videoCont"+page);
+        DatabaseReference cmtRef = database.getReference("videoCont" + page);
 
         newButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -91,33 +100,44 @@ public class CommentFragment extends Fragment {
                         @Override
                         public void onSuccess(Void unused) {
                             contentET.setText("");
-                            Log.d("userComment","user : "+user);
+                            Log.d("userComment", "user : " + user);
                         }
                     }).addOnFailureListener(new OnFailureListener() {
                         @Override
                         public void onFailure(@NonNull Exception e) {
-                            Log.d("userComment","userFail");
+                            Log.d("userComment", "userFail");
                         }
                     });
                     Map<String, Object> updates = new HashMap<>();
                     String key1 = "user";
                     String key2 = "content";
-                    updates.put(key1,user);
-                    updates.put(key2,content);
+                    updates.put(key1, user);
+                    updates.put(key2, content);
                     cmtRef.push().updateChildren(updates)
                             .addOnSuccessListener(new OnSuccessListener<Void>() {
                                 @Override
                                 public void onSuccess(Void unused) {
                                     contentET.setText("");
-                                    Toast.makeText(getActivity(), "Comments uploaded successfully!", Toast.LENGTH_SHORT).show();
                                 }
                             })
                             .addOnFailureListener(new OnFailureListener() {
                                 @Override
                                 public void onFailure(@NonNull Exception e) {
-                                    Toast.makeText(getActivity(), "Failed to upload comments!", Toast.LENGTH_SHORT).show();
                                 }
                             });
+
+                    if (bottomVideoViewVisible) {
+                        FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+                        fragmentTransaction.setCustomAnimations(R.anim.slide_in, R.anim.slide_out);
+                        fragmentTransaction.remove(bottomVideoViewFragment);
+                        fragmentTransaction.commit();
+
+                        bottomVideoViewVisible = false;
+                        VideoAdapter.bottomVideoViewVisible = false;
+
+                        InputMethodManager imm = (InputMethodManager) view.getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
+                        imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
+                    }
                 }
             }
         });
@@ -125,7 +145,7 @@ public class CommentFragment extends Fragment {
         if (!commentArrayList.isEmpty()) {
             // 数据不为空时设置Adapter
             commentAdapter = new CommentAdapter(getContext(), commentArrayList, userArrayList);
-            LinearLayoutManager llm =  new LinearLayoutManager(getContext(),LinearLayoutManager.VERTICAL,false);
+            LinearLayoutManager llm = new LinearLayoutManager(getContext(), LinearLayoutManager.VERTICAL, false);
             recyclerView.setLayoutManager(llm);
             recyclerView.setAdapter(commentAdapter);
         } else {

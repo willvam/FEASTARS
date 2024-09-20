@@ -7,8 +7,6 @@
     android:layout_height="match_parent"
     android:background="@color/black">
 
-
-
     <VideoView
         android:id="@+id/videoView"
         android:layout_width="match_parent"
@@ -62,6 +60,91 @@
         android:layout_marginBottom="100dp"
         android:layout_marginRight="10dp" />
 
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:background="@drawable/gradient">
+
+        <TextView
+            android:id="@+id/video_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="12dp"
+            android:text="Title"
+            android:textColor="@color/white"
+            android:textSize="34sp"
+            android:textStyle="bold"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <TextView
+            android:id="@+id/video_address"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="20dp"
+            android:text="TextView"
+            android:textColor="#DCD1D1"
+            android:textSize="18sp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/video_title" />
+
+        <TextView
+            android:id="@+id/video_date"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="20dp"
+            android:text="TextView"
+            android:textColor="#DCD1D1"
+            android:textSize="18sp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/video_address" />
+
+        <TextView
+            android:id="@+id/video_price"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="20dp"
+            android:text="TextView"
+            android:textColor="#FFFFFF"
+            android:textSize="24sp"
+            android:textStyle="bold"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/video_date" />
+
+        <de.hdodenhof.circleimageview.CircleImageView
+            android:id="@+id/profile_image"
+            android:layout_width="40dp"
+            android:layout_height="46dp"
+            android:src="@drawable/selfpic"
+            app:civ_border_color="#FF000000"
+            app:civ_border_width="2dp"
+            app:layout_constraintTop_toBottomOf="@+id/video_price"
+            app:layout_constraintStart_toStartOf="parent"
+            android:layout_marginStart="20dp"
+            android:layout_marginTop="8dp" />
+
+        <TextView
+            android:id="@+id/follow"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="追蹤"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:background="@drawable/layout_bkg_5"
+            android:paddingVertical="6dp"
+            android:paddingHorizontal="12dp"
+            android:layout_marginHorizontal="12dp"
+            android:elevation="2dp"
+            app:layout_constraintStart_toEndOf="@+id/profile_image"
+            app:layout_constraintTop_toTopOf="@+id/profile_image"
+            app:layout_constraintBottom_toBottomOf="@id/profile_image"/>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
     <FrameLayout
         android:id="@+id/frame_layout1"
         android:layout_width="match_parent"
@@ -81,78 +164,5 @@
         app:layout_constraintEnd_toEndOf="parent">
 
     </FrameLayout>
-
-    <TextView
-        android:id="@+id/video_title"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
-        android:layout_marginTop="16dp"
-        android:text="Title"
-        android:textColor="@color/white"
-        android:textSize="36sp"
-        android:textStyle="bold"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
-
-    <TextView
-        android:id="@+id/video_address"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="20dp"
-        android:text="TextView"
-        android:textColor="#DCD1D1"
-        android:textSize="18sp"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/video_title" />
-
-    <TextView
-        android:id="@+id/video_date"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="20dp"
-        android:text="TextView"
-        android:textColor="#DCD1D1"
-        android:textSize="18sp"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/video_address" />
-
-    <TextView
-        android:id="@+id/video_price"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="20dp"
-        android:text="TextView"
-        android:textColor="#FFFFFF"
-        android:textSize="24sp"
-        android:textStyle="bold"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/video_date" />
-
-    <de.hdodenhof.circleimageview.CircleImageView
-        android:id="@+id/profile_image"
-        android:layout_width="40dp"
-        android:layout_height="46dp"
-        android:src="@drawable/selfpic"
-        app:civ_border_color="#FF000000"
-        app:civ_border_width="2dp"
-        app:layout_constraintTop_toBottomOf="@+id/video_price"
-        app:layout_constraintStart_toStartOf="parent"
-        android:layout_marginStart="20dp"
-        android:layout_marginTop="8dp" />
-
-    <TextView
-        android:id="@+id/follow"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="12dp"
-        android:layout_marginTop="8dp"
-        android:text="追蹤"
-        android:textColor="#FFFFFF"
-        android:textSize="24sp"
-        android:textStyle="bold"
-        app:layout_constraintStart_toEndOf="@+id/profile_image"
-        app:layout_constraintTop_toTopOf="@+id/profile_image" />
-
 
 </androidx.constraintlayout.widget.ConstraintLayout>

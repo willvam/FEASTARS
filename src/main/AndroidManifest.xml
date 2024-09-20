@@ -34,12 +34,32 @@
             android:exported="false"
             android:screenOrientation="portrait" />
         <activity
+            android:name=".superuser"
+            android:exported="false"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name=".PieChartActivity"
+            android:exported="false"
+            android:screenOrientation="portrait" />
+        <activity
             android:name=".OthersAccountVideoActivity"
             android:exported="false"
             android:screenOrientation="portrait" />
         <activity
             android:name=".barchart"
             android:exported="true"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name=".shopbarchart"
+            android:exported="true"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name=".favoritebarchart"
+            android:exported="true"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name=".adchart"
+            android:exported="false"
             android:screenOrientation="portrait" />
         <activity
             android:name=".TagSearchActivity"

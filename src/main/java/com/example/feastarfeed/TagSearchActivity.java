@@ -47,7 +47,7 @@ public class TagSearchActivity extends AppCompatActivity {
 
     private DatabaseReference totalFoodTagRef;
 
-    private Button backButton;
+    private TextView backButton;
     String savevideotag;
 
     @Override

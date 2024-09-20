@@ -96,7 +96,7 @@ public class upload extends AppCompatActivity{
     StorageReference storageReference;
     LinearProgressIndicator progressIndicator;
     Uri video;
-    TextView uploadvideo,selectvideo,selectphoto,opencamera;
+    ImageView uploadvideo,selectvideo,selectphoto,opencamera;
     ImageButton Back_button;
     ImageView videopreview;
     EditText titleEditText,addressEditText,priceEditText,descriptionEditText;
@@ -145,12 +145,11 @@ public class upload extends AppCompatActivity{
         progressIndicator = findViewById(R.id.process);
         videopreview = findViewById(R.id.vediopreview);
 
-        uploadvideo = findViewById(R.id.uploadvideo);
-        selectvideo =findViewById(R.id.selectvideo);
-        selectphoto = findViewById(R.id.selectphoto);
+        uploadvideo = findViewById(R.id.uploadImg);
+        selectvideo =findViewById(R.id.selectImg);
+        opencamera = findViewById(R.id.photoImg);
         foodclass = findViewById(R.id.foodclass);
-        opencamera =findViewById(R.id.opencamera);
-        Test = findViewById(R.id.test);
+        //Test = findViewById(R.id.test);
         foodTagsEditText = findViewById(R.id.foodTagsEditText);
         titleEditText = findViewById(R.id.titleEditText);
         priceEditText = findViewById(R.id.priceEditText);
@@ -202,7 +201,7 @@ public class upload extends AppCompatActivity{
         Back_button = findViewById(R.id.back_button);
 
         datePicker = findViewById(R.id.datePicker);
-        Test.setOnClickListener(new View.OnClickListener(){
+        opencamera.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View view){
                 Log.d("upload","點季");
@@ -224,15 +223,15 @@ public class upload extends AppCompatActivity{
                 activityResultLauncher.launch(intent);
             }
         });
-        selectphoto.setOnClickListener(new View.OnClickListener(){
-            @Override
-            public void onClick(View view){
-                Intent intent = new Intent(Intent.ACTION_PICK);
-                intent.setType("image/*");
-                intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true); // 允许用户选择多个照片
-                activityResultLauncher.launch(intent);
-            }
-        });
+//        selectphoto.setOnClickListener(new View.OnClickListener(){
+//            @Override
+//            public void onClick(View view){
+//                Intent intent = new Intent(Intent.ACTION_PICK);
+//                intent.setType("image/*");
+//                intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true); // 允许用户选择多个照片
+//                activityResultLauncher.launch(intent);
+//            }
+//        });
 
         uploadvideo.setOnClickListener(new View.OnClickListener(){
             @Override
@@ -658,9 +657,6 @@ public class upload extends AppCompatActivity{
                         DatabaseReference foodtagsRef = videoRef.child("Foodtags");
                         videoRef.child("videoUrl").setValue(downloadUri.toString());
 
-                        //弄個May
-                        DatabaseReference database = FirebaseDatabase.getInstance().getReference();
-                        DatabaseReference mayRef = database.child("May");
 
                         // 獲取並解析食物標籤
                         String foodTags = foodTagsEditText.getText().toString();
@@ -672,28 +668,25 @@ public class upload extends AppCompatActivity{
                         String date = selectedDateEditText.getText().toString(); // 獲取日期的毫秒值
                         String desc = descriptionEditText.getText().toString();
 
-//                        //這裡開始
-//
-//                        // 解析日期字符串並獲取月份
-//                        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
-//                        Date dateformated;
-//                        try {
-//                            dateformated = dateFormat.parse(date);
-//                        } catch (ParseException e) {
-//                            e.printStackTrace();
-//                            return; // 無法解析日期字符串,直接返回
-//                        }
-//                        Calendar calendar = Calendar.getInstance();
-//                        calendar.setTime(dateformated);
-//                        int month = calendar.get(Calendar.MONTH) + 1; // 月份從 0 開始,所以加 1
-//                        int year = calendar.get(Calendar.YEAR);
-//                        String monthNodeName = year + "_" + String.format("%02d", month); // 例如: 2023_05
-//
-//                        //獲取月份節點的引用
-//                        DatabaseReference database = FirebaseDatabase.getInstance().getReference();
-//                        DatabaseReference monthRef = database.child(monthNodeName);
-//
-//                        //結束
+
+                        //獲取月份節點的引用
+                        DatabaseReference database = FirebaseDatabase.getInstance().getReference();
+                        DatabaseReference tagrankRef = database.child("tagrank");
+                        DatabaseReference shoprankRef = database.child("shoprank");
+
+
+
+                        String dateMonth;
+                        if (date.length() >= 7) {
+                            dateMonth = date.substring(0, 7); // 取出前 7 個字元, 例如 "2024/05"
+                        } else {
+                            // 處理日期格式錯誤的情況
+                            dateMonth = ""; // 或者根據您的需求設置其他預設值
+                        }
+
+
+                        DatabaseReference monthRef = tagrankRef.child(dateMonth);
+                        DatabaseReference monthShopRef = shoprankRef.child(dateMonth);
 
                         // 將食物標籤存儲到 Realtime Database 中
                         int count = 1;
@@ -701,27 +694,13 @@ public class upload extends AppCompatActivity{
                             //增加影片tag的地方
                             String key = "Foodtag" + count;
                             foodtagsRef.child(key).setValue(tag.trim());
-//
-//                            //更新對應月份節點中的標籤計數
-//                            monthRef.child(tag.trim()).addListenerForSingleValueEvent(new ValueEventListener() {
-//                                @Override
-//                                public void onDataChange(@NonNull DataSnapshot snapshot) {
-//                                    int currentCount = snapshot.getValue(Integer.class) != null ? snapshot.getValue(Integer.class) : 0;
-//                                    monthRef.child(tag.trim()).setValue(currentCount + 1);
-//                                }
-//
-//                                @Override
-//                                public void onCancelled(@NonNull DatabaseError error) {
-//                                    // 處理錯誤
-//                                }
-//                            });
 
-                            //May加tag
-                            mayRef.child(tag.trim()).addListenerForSingleValueEvent(new ValueEventListener() {
+                            //更新對應月份節點中的標籤計數
+                            monthRef.child(tag.trim()).addListenerForSingleValueEvent(new ValueEventListener() {
                                 @Override
                                 public void onDataChange(@NonNull DataSnapshot snapshot) {
                                     int currentCount = snapshot.getValue(Integer.class) != null ? snapshot.getValue(Integer.class) : 0;
-                                    mayRef.child(tag.trim()).setValue(currentCount + 1);
+                                    monthRef.child(tag.trim()).setValue(currentCount + 1);
                                 }
 
                                 @Override
@@ -735,6 +714,20 @@ public class upload extends AppCompatActivity{
                         //這邊是上傳在Video裡面的東西
                         //videoRef.child("url").setValue(downloadUri.toString());
                         videoRef.child("title").setValue(title);
+
+                        monthShopRef.child(title).addListenerForSingleValueEvent(new ValueEventListener() {
+                            @Override
+                            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                                int currentCount = snapshot.getValue(Integer.class) != null ? snapshot.getValue(Integer.class) : 0;
+                                monthShopRef.child(title).setValue(currentCount + 1);
+                            }
+
+                            @Override
+                            public void onCancelled(@NonNull DatabaseError error) {
+                                // 處理錯誤
+                            }
+                        });
+
                         videoRef.child("address").setValue(address);
                         videoRef.child("price").setValue("$"+price);
                         videoRef.child("date").setValue(date);

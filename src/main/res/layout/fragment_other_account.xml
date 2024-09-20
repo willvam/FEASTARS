@@ -10,192 +10,307 @@
 
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="match_parent"
+            android:background="@color/topic_5"
             android:orientation="vertical">
 
-
-
-            <!-- 個人資訊區塊 -->
-            <RelativeLayout
+            <androidx.constraintlayout.widget.ConstraintLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:padding="16dp">
+                android:layout_margin="10dp"
+                android:background="@drawable/layout_bkg_3"
+                android:elevation="5dp"
+                android:padding="24dp">
 
-                <de.hdodenhof.circleimageview.CircleImageView
-                    android:id="@+id/profile_image"
-                    android:layout_width="80dp"
-                    android:layout_height="80dp"
-                    android:src="@drawable/selfpic"
-                    app:civ_border_color="#FF000000"
-                    app:civ_border_width="2dp" />
-
-                <LinearLayout
-                    android:layout_width="wrap_content"
+                <TextView
+                    android:id="@+id/username"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_centerVertical="true"
-                    android:layout_marginStart="16dp"
-                    android:layout_toEndOf="@id/profile_image"
-                    android:orientation="vertical">
+                    android:layout_marginStart="6dp"
+                    android:text="Username"
+                    android:textColor="#000000"
+                    android:textSize="24sp"
+                    android:textStyle="bold"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
 
-                    <TextView
-                        android:id="@+id/username"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Username"
-                        android:textSize="18sp"
-                        android:textStyle="bold" />
+                <!-- 個人資訊區塊 -->
+                <androidx.constraintlayout.widget.ConstraintLayout
+                    android:id="@+id/info"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/username">
+
+                    <de.hdodenhof.circleimageview.CircleImageView
+                        android:id="@+id/profile_image"
+                        android:layout_width="80dp"
+                        android:layout_height="80dp"
+                        android:src="@drawable/user"
+                        app:civ_border_color="@color/topic"
+                        app:civ_border_width="1dp"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toTopOf="parent" />
 
                     <LinearLayout
-                        android:layout_width="wrap_content"
+                        android:id="@+id/overview"
+                        android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:orientation="horizontal">
+                        android:layout_centerVertical="true"
+                        android:gravity="center"
+                        android:orientation="horizontal"
+                        android:padding="10dp"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintStart_toEndOf="@id/profile_image"
+                        app:layout_constraintTop_toTopOf="parent">
 
-                        <TextView
-                            android:id="@+id/post_count"
+                        <androidx.constraintlayout.widget.ConstraintLayout
                             android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="0 Posts"
-                            android:textSize="16sp" />
+                            android:layout_height="wrap_content">
 
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginStart="8dp"
-                            android:layout_marginEnd="8dp"
-                            android:text="|"
-                            android:textSize="16sp" />
+                            <LinearLayout
+                                android:id="@+id/postnum"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginEnd="15dp"
+                                android:gravity="center"
+                                android:orientation="vertical"
+                                app:layout_constraintBottom_toBottomOf="parent"
+                                app:layout_constraintEnd_toStartOf="@id/tagnum"
+                                app:layout_constraintStart_toStartOf="parent"
+                                app:layout_constraintTop_toTopOf="parent">
 
-                        <TextView
-                            android:id="@+id/follower_count"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="0 Followers"
-                            android:textSize="16sp" />
+                                <androidx.constraintlayout.widget.ConstraintLayout
+                                    android:id="@+id/bubble1"
+                                    android:layout_width="80dp"
+                                    android:layout_height="wrap_content"
+                                    android:background="@drawable/layout_bkg"
+                                    android:elevation="5dp">
 
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginStart="8dp"
-                            android:layout_marginEnd="8dp"
-                            android:text="|"
-                            android:textSize="16sp" />
+                                    <TextView
+                                        android:id="@+id/post_count"
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:text="0"
+                                        android:textSize="28sp"
+                                        android:textStyle="bold"
+                                        app:layout_constraintBottom_toBottomOf="parent"
+                                        app:layout_constraintEnd_toEndOf="parent"
+                                        app:layout_constraintStart_toStartOf="parent"
+                                        app:layout_constraintTop_toTopOf="parent" />
 
-                        <TextView
-                            android:id="@+id/Saved"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="0 收藏"
-                            android:textSize="16sp" />
+                                </androidx.constraintlayout.widget.ConstraintLayout>
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_margin="4dp"
+                                    android:text=" 貼文"
+                                    android:textSize="14sp"
+                                    app:layout_constraintStart_toStartOf="parent"
+                                    app:layout_constraintTop_toBottomOf="@id/post_count" />
+
+                            </LinearLayout>
+
+                            <LinearLayout
+                                android:id="@+id/tagnum"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="15dp"
+                                android:gravity="center"
+                                android:orientation="vertical"
+                                app:layout_constraintBottom_toBottomOf="parent"
+                                app:layout_constraintEnd_toEndOf="parent"
+                                app:layout_constraintStart_toEndOf="@id/postnum"
+                                app:layout_constraintTop_toTopOf="parent">
+
+                                <androidx.constraintlayout.widget.ConstraintLayout
+                                    android:id="@+id/bubble2"
+                                    android:layout_width="80dp"
+                                    android:layout_height="wrap_content"
+                                    android:background="@drawable/layout_bkg"
+                                    android:elevation="5dp">
+
+                                    <TextView
+                                        android:id="@+id/Savedvideo"
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:text="0"
+                                        android:textSize="28sp"
+                                        android:textStyle="bold"
+                                        app:layout_constraintBottom_toBottomOf="parent"
+                                        app:layout_constraintEnd_toEndOf="parent"
+                                        app:layout_constraintStart_toStartOf="parent"
+                                        app:layout_constraintTop_toTopOf="parent" />
+
+                                </androidx.constraintlayout.widget.ConstraintLayout>
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_margin="4dp"
+                                    android:text=" 收藏"
+                                    android:textSize="14sp"
+                                    app:layout_constraintStart_toStartOf="parent"
+                                    app:layout_constraintTop_toBottomOf="@id/post_count" />
+
+                            </LinearLayout>
+
+                        </androidx.constraintlayout.widget.ConstraintLayout>
 
                     </LinearLayout>
 
+                </androidx.constraintlayout.widget.ConstraintLayout>
+
+                <!-- 個人簡介區塊 -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:orientation="horizontal"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/info">
+
+                    <androidx.constraintlayout.widget.ConstraintLayout
+                        android:id="@+id/bubble3"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginVertical="8dp"
+                        android:background="@drawable/layout_bkg"
+                        android:elevation="5dp"
+                        android:paddingHorizontal="20dp"
+                        android:paddingVertical="10dp">
+
+                        <TextView
+                            android:id="@+id/bio"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginEnd="16dp"
+                            android:text="Bio"
+                            android:textSize="16sp"
+                            app:layout_constraintBottom_toBottomOf="parent"
+                            app:layout_constraintEnd_toEndOf="parent"
+                            app:layout_constraintStart_toStartOf="parent"
+                            app:layout_constraintTop_toTopOf="parent" />
+
+                        <EditText
+                            android:id="@+id/bioEditText"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:hint="修改個人簡介"
+                            android:visibility="gone"
+                            app:layout_constraintBottom_toBottomOf="parent"
+                            app:layout_constraintEnd_toEndOf="parent"
+                            app:layout_constraintStart_toStartOf="parent"
+                            app:layout_constraintTop_toTopOf="parent" />
+
+                        <ImageView
+                            android:id="@+id/bioCompleteButton"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:src="@drawable/edit"
+                            android:visibility="gone"
+                            app:layout_constraintEnd_toEndOf="parent"
+                            app:layout_constraintTop_toTopOf="parent" />
+
+                    </androidx.constraintlayout.widget.ConstraintLayout>
+
                 </LinearLayout>
 
-            </RelativeLayout>
+            </androidx.constraintlayout.widget.ConstraintLayout>
 
-            <!-- 個人簡介區塊 -->
-            <LinearLayout
+            <androidx.constraintlayout.widget.ConstraintLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:padding="16dp">
+                android:layout_margin="10dp"
+                android:layout_marginVertical="8dp"
+                android:background="@drawable/layout_bkg_3"
+                android:elevation="5dp"
+                android:padding="24dp">
 
-                <EditText
-                    android:id="@+id/bioEditText"
-                    android:layout_width="0dp"
+                <androidx.constraintlayout.widget.ConstraintLayout
+                    android:id="@+id/con1"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:hint="修改個人簡介"
-                    android:visibility="gone" />
+                    android:background="@drawable/layout_bkg_5"
+                    android:elevation="5dp"
+                    android:padding="8dp"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent">
 
-                <Button
-                    android:id="@+id/bioCompleteButton"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="8dp"
-                    android:text="完成"
-                    android:visibility="gone" />
+                    <ImageView
+                        android:id="@+id/followImg"
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:src="@drawable/followfriend"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toTopOf="parent" />
 
-                <TextView
-                    android:id="@+id/bio"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="Bio"
-                    android:textSize="16sp" />
+                    <TextView
+                        android:id="@+id/followed"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_margin="4dp"
+                        android:text="Follow"
+                        android:textAlignment="center"
+                        android:textColor="@color/topic"
+                        android:textSize="24sp"
+                        android:textStyle="bold"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toTopOf="parent" />
 
-
-
-            </LinearLayout>
-
-            <!-- 編輯個人資料按鈕 -->
-
-
-
-            <!-- 分隔線 (中央有文字) -->
-            <RelativeLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content">
+                </androidx.constraintlayout.widget.ConstraintLayout>
 
                 <View
+                    android:id="@+id/line"
                     android:layout_width="match_parent"
                     android:layout_height="1dp"
-                    android:layout_centerVertical="true"
-                    android:background="@android:color/darker_gray" />
+                    android:layout_marginVertical="10dp"
+                    android:background="#FFFFFF"
+                    app:layout_constraintBottom_toTopOf="@id/videotext"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/con1" />
 
-
-            </RelativeLayout>
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:padding="16dp">
-
-                <Button
-                    android:id="@+id/followed"
-                    android:layout_width="0dp"
+                <TextView
+                    android:id="@+id/videotext"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="追蹤" />
+                    android:layout_margin="4dp"
+                    android:background="@drawable/layout_bkg_5"
+                    android:elevation="2dp"
+                    android:padding="8dp"
+                    android:text=" 個人影片"
+                    android:textSize="14sp"
+                    app:layout_constraintBottom_toTopOf="@id/rvVideoPreview"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/line" />
 
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/rvVideoPreview"
+                    android:layout_width="match_parent"
+                    android:layout_height="250dp"
+                    android:layout_marginTop="8dp"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/videotext" />
 
-
-
-            </LinearLayout>
-
-            <!-- 分隔線 (無文字) -->
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="1dp"
-                android:background="@android:color/darker_gray" />
-
-            <androidx.recyclerview.widget.RecyclerView
-                android:layout_marginTop="45dp"
-                android:id="@+id/rvVideoPreview"
-                android:layout_width="match_parent"
-                android:layout_height="250dp" />
-
-            <!-- 分頁標籤 -->
-            <com.google.android.material.tabs.TabLayout
-                android:id="@+id/tab_layout"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                app:tabGravity="fill"
-                app:tabMode="fixed" />
-
-            <!-- 分頁內容區塊 -->
-            <androidx.viewpager.widget.ViewPager
-                android:id="@+id/view_pager"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content" />
+            </androidx.constraintlayout.widget.ConstraintLayout>
 
         </LinearLayout>
 
     </ScrollView>
 
     <FrameLayout
-        android:id="@+id/OthersAccount"
+        android:id="@+id/frame_layout"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 
