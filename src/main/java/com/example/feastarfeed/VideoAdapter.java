@@ -1,8 +1,7 @@
 package com.example.feastarfeed;
 
-import static android.app.PendingIntent.getActivity;
-
 import android.content.Context;
+import android.graphics.drawable.Drawable;
 import android.media.MediaPlayer;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -13,6 +12,8 @@ import android.widget.TextView;
 import android.widget.VideoView;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
@@ -20,13 +21,8 @@ import androidx.recyclerview.widget.RecyclerView;
 import androidx.viewpager2.widget.ViewPager2;
 
 import com.bumptech.glide.Glide;
-import com.google.android.exoplayer2.ExoPlayer;
-import com.google.android.exoplayer2.MediaItem;
-import com.google.android.exoplayer2.Player;
-import com.google.android.exoplayer2.source.MediaSource;
-import com.google.android.exoplayer2.source.ProgressiveMediaSource;
-import com.google.android.exoplayer2.ui.PlayerView;
-import com.google.android.exoplayer2.upstream.DefaultHttpDataSource;
+import com.bumptech.glide.request.target.CustomTarget;
+import com.bumptech.glide.request.transition.Transition;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -48,17 +44,13 @@ public class VideoAdapter extends RecyclerView.Adapter<VideoAdapter.VideoViewHol
     FirebaseDatabase database = FirebaseDatabase.getInstance();
     private final DatabaseReference mDatabase;
 
-    private final DatabaseReference cmtDatabase;
-
-    public ArrayList<Comment> commentArrayList;
-
-    public CommentAdapter commentAdapter;
     private HomeFragment.IdPassCallback idPassCallback;
-
     private ClickedFragment.IdPassCallback idPassCallbackPersonal;
+    private HomeFragment.titlePassCallback TITLEPassCallback;
     private long id;
-    private long parameterFav=10;
-    private long parameterTAG=15;
+    private String title;
+    private long parameterFav=10;/////111111111111111111111
+    private long parameterTAG=15;/////111111111111111111111
     private DatabaseReference pDatabase;
     public Boolean getDoFav() {
         return setDoFav;
@@ -71,10 +63,13 @@ public class VideoAdapter extends RecyclerView.Adapter<VideoAdapter.VideoViewHol
     private FragmentManager fragmentManager;
     public static boolean bottomVideoViewVisible = false;
     public static boolean tagViewVisible = false;
+
+    boolean descViewVisible = false;
     private Context context;
     private  String username;
     private  String uploader;
-    CircleImageView profileImage;
+
+    public static ConstraintLayout constraintLayout;
 
     private  String shopname;
 
@@ -86,7 +81,7 @@ public class VideoAdapter extends RecyclerView.Adapter<VideoAdapter.VideoViewHol
 //        this.context = context;
 //        this.userList = userList;
 //    }
-private OnProfileImageClickListener onProfileImageClickListener;
+    private OnProfileImageClickListener onProfileImageClickListener;
 
 
 
@@ -100,17 +95,16 @@ private OnProfileImageClickListener onProfileImageClickListener;
 
 
 
-    public VideoAdapter(List<Video> VideoList, DatabaseReference videosRef, FragmentManager fragmentManager , HomeFragment.IdPassCallback callback, ClickedFragment.IdPassCallback callback1){
+    public VideoAdapter(List<Video> VideoList, DatabaseReference videosRef, FragmentManager fragmentManager , HomeFragment.IdPassCallback callback, ClickedFragment.IdPassCallback callback1 , HomeFragment.titlePassCallback callback2){
         this.fragmentManager = fragmentManager;
         this.videoList = VideoList;
 
         this.videosRef = videosRef;
         mDatabase = database.getReference("Videos");
         pDatabase = database.getReference("Users");
-        cmtDatabase = database.getReference("Comments");
         this.idPassCallback = callback;
         this.idPassCallbackPersonal = callback1;
-
+        this.TITLEPassCallback= callback2;
 
     }
     /////在这里调用接口回调
@@ -119,6 +113,17 @@ private OnProfileImageClickListener onProfileImageClickListener;
         if (idPassCallback != null) {
             idPassCallback.onIdPassChanged(id);
             idPassCallbackPersonal.onIdPassChanged(id);
+        }
+        Log.d("位置tag", String.valueOf(id));
+        // 在这里根据需要进行相应的操作,比如刷新UI等
+//        notifyDataSetChanged();
+    }
+
+
+    public void setTITLEPass(String titlepass) {
+        this.title = titlepass;
+        if (TITLEPassCallback != null) {
+            TITLEPassCallback.onTITLEPassChanged(title);
         }
         Log.d("位置tag", String.valueOf(id));
         // 在这里根据需要进行相应的操作,比如刷新UI等
@@ -142,6 +147,60 @@ private OnProfileImageClickListener onProfileImageClickListener;
         Video video = videoList.get(position);
         holder.setVideoViewData(video);
 
+        holder.view.setVisibility(View.VISIBLE);
+
+        if (context == null) {
+            // 从 ViewHolder.itemView 获取一个非空的 Context
+            context = holder.itemView.getContext();
+        }
+
+        String videoPicUrl = video.getVideoPic();
+        Log.d("VideoAdapter", "Loading profileimage URL: " + videoPicUrl);
+        Glide.with(context)
+                .load(video.getprofileImageUrl())
+                .into(new CustomTarget<Drawable>() {
+                    @Override
+                    public void onResourceReady(@NonNull Drawable resource, @Nullable Transition<? super Drawable> transition) {
+                        // 当图片资源成功加载并准备好时，将其设置为 profileImage 的背景
+                        holder.profileImage.setImageDrawable(resource);
+                        Log.d("VideoAdapter", "Image loaded successfully");
+                    }
+
+                    @Override
+                    public void onLoadCleared(@Nullable Drawable placeholder) {
+
+                    }
+
+                    @Override
+                    public void onLoadFailed(@Nullable Drawable errorDrawable) {
+                        // 当图片加载失败时，记录错误日志，并设置错误占位符（如果需要）
+                        super.onLoadFailed(errorDrawable);
+                        Log.e("VideoAdapter", "Failed to load profileimage");
+
+                    }
+                });
+
+        Glide.with(context)
+                .load(videoPicUrl)
+                .into(new CustomTarget<Drawable>() {
+                    @Override
+                    public void onResourceReady(@NonNull Drawable resource, @Nullable Transition<? super Drawable> transition) {
+                        holder.view.setBackground(resource);
+                        Log.d("VideoAdapter", "Image loaded successfully");
+                    }
+
+                    @Override
+                    public void onLoadCleared(@Nullable Drawable placeholder) {
+                        // Handle placeholder if needed
+                    }
+
+                    @Override
+                    public void onLoadFailed(@Nullable Drawable errorDrawable) {
+                        super.onLoadFailed(errorDrawable);
+                        Log.e("VideoAdapter", "Failed to load image");
+                    }
+                });
+
         holder.tag.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -151,14 +210,8 @@ private OnProfileImageClickListener onProfileImageClickListener;
             }
         });
 // 獲取 username
-        if (context == null) {
-            // 从 ViewHolder.itemView 获取一个非空的 Context
-            context = holder.itemView.getContext();
-        }
-         username = SharedPreferencesUtils.getUsername(context);
-        Log.d("username2", username);
 
-
+        username = SharedPreferencesUtils.getUsername(context);
         holder.fav.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -166,8 +219,11 @@ private OnProfileImageClickListener onProfileImageClickListener;
                 toggleDoFav(holder.getAdapterPosition(),holder);
             }
         });
-
-
+        ////////////取得後台演算法參數
+        parameterFav = SharedPreferencesUtils.getPARA_Like(context);
+        parameterTAG = SharedPreferencesUtils.getPARA_TAG(context);
+        Log.d("parameter", "parameterFav"+ parameterFav);
+        Log.d("parameter", "parameterTAG"+ parameterTAG);
 
         //id = video.getId();
         //Log.d("位置tag", String.valueOf(id));
@@ -234,6 +290,7 @@ private OnProfileImageClickListener onProfileImageClickListener;
             public void onClick(View v) {
                 Fragment bottomVideoViewFragment = fragmentManager.findFragmentById(R.id.frame_layout1);
                 Fragment tagViewFragment = fragmentManager.findFragmentById(R.id.frame_layout2);
+                Fragment descFragment = fragmentManager.findFragmentById(R.id.frame_layout3);
 
                 if (bottomVideoViewFragment != null) {
                     FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
@@ -251,6 +308,18 @@ private OnProfileImageClickListener onProfileImageClickListener;
                 }
 
                 tagViewVisible = false;
+
+                if (descFragment != null) {
+                    FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+                    fragmentTransaction.setCustomAnimations(R.anim.slide_in, R.anim.slide_out);
+                    fragmentTransaction.remove(descFragment);
+                    fragmentTransaction.commit();
+
+                    holder.desc.setVisibility(View.VISIBLE);
+                    holder.textView.setVisibility(View.VISIBLE);
+                }
+
+                descViewVisible = false;
             }
 
         });
@@ -303,6 +372,31 @@ private OnProfileImageClickListener onProfileImageClickListener;
             }
         });
 
+        holder.desc.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+                fragmentTransaction.setCustomAnimations(R.anim.slide_in, R.anim.slide_out);
+                if (descViewVisible) {
+                    // 隐藏 Bottom_VIdeo_View
+                    Fragment tagViewFragment = fragmentManager.findFragmentById(R.id.frame_layout2);
+                    if (tagViewFragment != null) {
+                        fragmentTransaction.remove(tagViewFragment);
+                        descViewVisible = false;
+                    }
+                } else {
+                    // 显示 Bottom_VIdeo_View
+                    fragmentTransaction.replace(R.id.frame_layout3, new DescriptionFragment());
+                    descViewVisible = true;
+                }
+                fragmentTransaction.commit();
+
+                holder.desc.setVisibility(View.GONE);
+                holder.textView.setVisibility(View.GONE);
+
+            }
+        });
+
     }
 
     @Override
@@ -316,19 +410,22 @@ private OnProfileImageClickListener onProfileImageClickListener;
 
 
     public class VideoViewHolder extends RecyclerView.ViewHolder{
-//        private ExoPlayer player;
+        //        private ExoPlayer player;
 //        PlayerView playerView;
         VideoView videoView;
 
+        TextView title, address , date ,  price, followState, textView;
 
-        TextView title, address , date ,  price,followState;
-
-        ImageView fav, tag, chat, foods;
+        ImageView fav, tag, chat, foods, desc;
 
         ViewPager2 viewPager2;
         String profileImageUrl;
+        CircleImageView profileImage;
+
         private Context context;
         private String username;
+
+        View view;
 
 
         String vurl;
@@ -350,7 +447,10 @@ private OnProfileImageClickListener onProfileImageClickListener;
             followState = itemView.findViewById(R.id.follow);
             context = itemView.getContext();
             username = SharedPreferencesUtils.getUsername(context);
-            Log.d("username2", username);
+            desc = itemView.findViewById(R.id.imageview);
+            textView = itemView.findViewById(R.id.textview);
+            view = itemView.findViewById(R.id.videoCon);
+//            Log.d("VideoViewHolder", username);
 
 //            // 創建 ExoPlayer 實例
 //            player = new ExoPlayer.Builder(itemView.getContext()).build();
@@ -375,7 +475,7 @@ private OnProfileImageClickListener onProfileImageClickListener;
         public void setVideoViewData(Video video){
             profileImageUrl = video.getprofileImageUrl();
 
-            Log.d("ProfileImageUrl", username);
+
 
             title.setText(video.getTitle());
             address.setText(video.getAddress());
@@ -384,101 +484,175 @@ private OnProfileImageClickListener onProfileImageClickListener;
             videoView.setVideoPath(video.getVideoUrl());
             uploader = video.getUploader();
 
+
+            Log.d("setVideoViewData", "當前使用者="+username);
+            if (uploader != null) {
+                Log.d("當前uploader=", uploader);
+            } else {
+                Log.d("當前uploader=", "null");
+            }
+
+
             DatabaseReference followingRef = FirebaseDatabase.getInstance().getReference()
                     .child("Users").child(username).child("followed");
 
-            followingRef.addListenerForSingleValueEvent(new ValueEventListener() {
-                @Override
-                public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                    boolean isFollowing = false;
-                    for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
-                        if (snapshot.getValue().equals(uploader)) {
-                            isFollowing = true;
-                            break;
-                        }
-                    }
+            if(uploader.equals(username)){
+//                followState.setVisibility(View.INVISIBLE);
+                followState.setEnabled(false);
+                followState.setText("已上傳");
+                Log.d("setVideoViewData","上傳者是自己");
 
-                    final boolean finalIsFollowing = isFollowing;
-                    followState.setText(isFollowing ? "追蹤中" : "追蹤");
-                    followState.setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View v) {
-                            final String currentText = followState.getText().toString();
-                            if (currentText.equals("追蹤中")) {
-                                // 取消追蹤
-                                DatabaseReference currentUserFollowedRef = FirebaseDatabase.getInstance().getReference("Users").child(username).child("followed");
-                                currentUserFollowedRef.addListenerForSingleValueEvent(new ValueEventListener() {
-                                    @Override
-                                    public void onDataChange(@NonNull DataSnapshot snapshot) {
-                                        for (DataSnapshot childSnapshot : snapshot.getChildren()) {
-                                            if (childSnapshot.getValue().equals(uploader)) {
-                                                childSnapshot.getRef().removeValue();
-                                                break;
-                                            }
-                                        }
-                                    }
+            }
+            else{
+                Log.d("setVideoViewData","上傳者不是自己");
 
-                                    @Override
-                                    public void onCancelled(@NonNull DatabaseError error) {
-                                        // 處理錯誤
-                                    }
-                                });
+                followState.setEnabled(true);
+//                followState.setVisibility(View.VISIBLE);
 
-                                DatabaseReference uploaderFollowersRef = FirebaseDatabase.getInstance().getReference("Users").child(uploader).child("followers");
-                                uploaderFollowersRef.addListenerForSingleValueEvent(new ValueEventListener() {
-                                    @Override
-                                    public void onDataChange(@NonNull DataSnapshot snapshot) {
-                                        for (DataSnapshot childSnapshot : snapshot.getChildren()) {
-                                            if (childSnapshot.getValue().equals(username)) {
-                                                childSnapshot.getRef().removeValue();
-                                                break;
-                                            }
-                                        }
-                                    }
-
-                                    @Override
-                                    public void onCancelled(@NonNull DatabaseError error) {
-                                        // 處理錯誤
-                                    }
-                                });
-
-                                followState.setText("追蹤");
-                            } else {
-                                // 開始追蹤
-                                DatabaseReference currentUserFollowedRef = FirebaseDatabase.getInstance().getReference("Users").child(username).child("followed");
-                                currentUserFollowedRef.push().setValue(uploader);
-
-                                DatabaseReference uploaderFollowersRef = FirebaseDatabase.getInstance().getReference("Users").child(uploader).child("followers");
-                                uploaderFollowersRef.push().setValue(username);
-
-                                followState.setText("追蹤中");
+                followingRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                        boolean isFollowing = false;
+                        for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                            if (snapshot.getValue().equals(uploader)) {
+                                isFollowing = true;
+                                break;
                             }
                         }
-                    });
-                }
 
-                @Override
-                public void onCancelled(@NonNull DatabaseError databaseError) {
-                    // 處理錯誤
-                }
-            });
-            if (uploader != null) {
-                Log.d("uploader", uploader);
-            } else {
-                Log.d("uploader", "uploader is null");
+                        final boolean finalIsFollowing = isFollowing;
+
+                        followState.setText(isFollowing ? "追蹤中" : "追蹤");
+                        followState.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                final String currentText = followState.getText().toString();
+                                if (currentText.equals("追蹤中")) {
+                                    // 取消追蹤
+                                    DatabaseReference currentUserFollowedRef = FirebaseDatabase.getInstance().getReference("Users").child(username).child("followed");
+                                    currentUserFollowedRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                                        @Override
+                                        public void onDataChange(@NonNull DataSnapshot snapshot) {
+                                            for (DataSnapshot childSnapshot : snapshot.getChildren()) {
+                                                if (childSnapshot.getValue().equals(uploader)) {
+                                                    childSnapshot.getRef().removeValue();
+                                                    break;
+                                                }
+                                            }
+                                        }
+
+                                        @Override
+                                        public void onCancelled(@NonNull DatabaseError error) {
+                                            // 處理錯誤
+                                        }
+                                    });
+
+                                    DatabaseReference uploaderFollowersRef = FirebaseDatabase.getInstance().getReference("Users").child(uploader).child("followers");
+                                    uploaderFollowersRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                                        @Override
+                                        public void onDataChange(@NonNull DataSnapshot snapshot) {
+                                            for (DataSnapshot childSnapshot : snapshot.getChildren()) {
+                                                if (childSnapshot.getValue().equals(username)) {
+                                                    childSnapshot.getRef().removeValue();
+                                                    break;
+                                                }
+                                            }
+                                        }
+
+                                        @Override
+                                        public void onCancelled(@NonNull DatabaseError error) {
+                                            // 處理錯誤
+                                        }
+                                    });
+
+                                    followState.setText("追蹤");
+                                } else {
+                                    // 開始追蹤
+                                    DatabaseReference currentUserFollowedRef = FirebaseDatabase.getInstance().getReference("Users").child(username).child("followed");
+                                    currentUserFollowedRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                                        @Override
+                                        public void onDataChange(DataSnapshot dataSnapshot) {
+                                            List<String> existingKeys = new ArrayList<>();
+                                            for (DataSnapshot child : dataSnapshot.getChildren()) {
+                                                existingKeys.add(child.getKey());
+                                            }
+
+                                            int startValue = 1;
+                                            String newKey;
+                                            while (existingKeys.contains("followed" + startValue)) {
+                                                startValue++;
+                                            }
+                                            newKey = "followed" + startValue;
+
+                                            // 將 uploader 推送到新的鍵值下
+                                            currentUserFollowedRef.child(newKey).setValue(uploader);
+                                        }
+
+                                        @Override
+                                        public void onCancelled(DatabaseError databaseError) {
+                                            // 處理錯誤
+                                        }
+                                    });
+
+                                    DatabaseReference uploaderFollowersRef = FirebaseDatabase.getInstance().getReference("Users").child(uploader).child("followers");
+                                    uploaderFollowersRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                                        @Override
+                                        public void onDataChange(DataSnapshot dataSnapshot) {
+                                            List<String> existingKeys = new ArrayList<>();
+                                            for (DataSnapshot child : dataSnapshot.getChildren()) {
+                                                existingKeys.add(child.getKey());
+                                            }
+
+                                            int startValue = 1;
+                                            String newKey;
+                                            while (existingKeys.contains("followed" + startValue)) {
+                                                startValue++;
+                                            }
+                                            newKey = "followed" + startValue;
+
+                                            // 將 uploader 推送到新的鍵值下
+                                            uploaderFollowersRef.child(newKey).setValue(username);
+                                        }
+
+                                        @Override
+                                        public void onCancelled(DatabaseError databaseError) {
+                                            // 處理錯誤
+                                        }
+                                    });
+
+                                    followState.setText("追蹤中");
+                                }
+                            }
+                        });
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError databaseError) {
+                        // 處理錯誤
+                    }
+                });
             }
 
-            Glide.with(profileImage.getContext())
-                    .load(video.getprofileImageUrl())
-                    .into(profileImage);
+
+
+//            Glide.with(profileImage.getContext())
+//                    .load(video.getprofileImageUrl())
+//                    .into(profileImage);
+
             profileImage.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    Log.d("連結個人葉", "點擊123");
-
                     if (onProfileImageClickListener != null) {
-                        Log.d("連結個人葉", "點擊");
-                        onProfileImageClickListener.OnProfileImageClick(uploader);
+                        Log.d("連結個人頁面", "點擊了");
+                        if (profileImageUrl.equals("https://firebasestorage.googleapis.com/v0/b/feastars-1861e.appspot.com/o/personalimages%2Fprofile_ubereat.jpg?alt=media&token=52b5bbde-51c0-4337-af49-9d542aced4e5"))
+                        {
+                            onProfileImageClickListener.OnProfileImageClick("ubereat");
+
+                        }
+                        else {
+                            onProfileImageClickListener.OnProfileImageClick(uploader);
+
+                        }
                     }
                 }
             });
@@ -508,6 +682,8 @@ private OnProfileImageClickListener onProfileImageClickListener;
             videoView.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
                 @Override
                 public void onPrepared(MediaPlayer mp) {
+
+                    view.setVisibility(View.GONE);
                     mp.start();
 
                     float videoRatio = mp.getVideoWidth() / (float) mp.getVideoHeight();
@@ -568,6 +744,7 @@ private OnProfileImageClickListener onProfileImageClickListener;
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 if (dataSnapshot.exists()) {
                     long currentValue = dataSnapshot.getValue(Long.class);
+                    Log.d("parameter22222222222Fv", "parameterTimeLOW"+ parameterFav);
                     long newValue = setDoFav ? currentValue + parameterFav : currentValue - parameterFav;
                     preferRef.setValue(newValue);
                 } else {
@@ -602,30 +779,33 @@ private OnProfileImageClickListener onProfileImageClickListener;
             }
         });
     }
+
+
     public void toggleDoFav(int position, VideoViewHolder holder) {
-        DatabaseReference videoRef = database.getReference("Users").child(username).child("Cont").child("cont"+id).child("Fav");
+        DatabaseReference videoRef1 = database.getReference("Users").child(username).child("Cont").child("cont"+id).child("Fav");
+        DatabaseReference videoRef2 = database.getReference("Users").child(username).child("Cont").child("cont"+id).child("Tag");
         DatabaseReference shopFavRef = database.getReference().child("shopFav");//這加入
         String dateMonth = getCurrentMonth();
         DatabaseReference monthShopFavRef = shopFavRef.child(dateMonth);
 
 
-        videoRef.addListenerForSingleValueEvent(new ValueEventListener() {
+        videoRef1.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 Boolean doFav = dataSnapshot.getValue(Boolean.class);
                 if (doFav != null) {
                     // 切换 doFav 的值
-                    videoRef.setValue(!doFav);
+                    videoRef1.setValue(!doFav);
                     // 更新图标
                     if (!doFav) {
                         holder.fav.setImageResource(R.drawable.baseline_favorite_40); // 喜爱图标
                         setDoFav = true;
 
-                        monthShopFavRef.child(shopname).addListenerForSingleValueEvent(new ValueEventListener() {
+                        monthShopFavRef.child(title).addListenerForSingleValueEvent(new ValueEventListener() {
                             @Override
                             public void onDataChange(@NonNull DataSnapshot snapshot) {
                                 int currentCount = snapshot.getValue(Integer.class) != null ? snapshot.getValue(Integer.class) : 0;
-                                monthShopFavRef.child(shopname).setValue(currentCount + 1);
+                                monthShopFavRef.child(title).setValue(currentCount + 1);
                             }
 
                             @Override
@@ -671,12 +851,12 @@ private OnProfileImageClickListener onProfileImageClickListener;
                         for (DataSnapshot tagSnapshot : dataSnapshot.getChildren()) {
                             Log.d("tag", String.valueOf(tagSnapshot));
                         }
-
-                        monthShopFavRef.child(shopname).addListenerForSingleValueEvent(new ValueEventListener() {
+                        Log.d("title", String.valueOf(title));
+                        monthShopFavRef.child(title).addListenerForSingleValueEvent(new ValueEventListener() {
                             @Override
                             public void onDataChange(@NonNull DataSnapshot snapshot) {
                                 int currentCount = snapshot.getValue(Integer.class) != null ? snapshot.getValue(Integer.class) : 0;
-                                monthShopFavRef.child(shopname).setValue(currentCount - 1);
+                                monthShopFavRef.child(title).setValue(currentCount - 1);
                             }
 
                             @Override
@@ -712,8 +892,8 @@ private OnProfileImageClickListener onProfileImageClickListener;
                     Log.d("VideoAdapter", "setDoFav value: " + setDoFav); // 添加一个 Log 语句来输出 setDoFav 的值
                 }else{
 
-                    videoRef.setValue(true);
-
+                    videoRef1.setValue(true);
+                    videoRef2.setValue(false);
                 }
             }
             @Override
@@ -725,15 +905,17 @@ private OnProfileImageClickListener onProfileImageClickListener;
 
 
 
-////////////////////////////
+    ////////////////////////////
+
     public void toggleDoTag(int position, VideoViewHolder holder) {
-        DatabaseReference videoRef = database.getReference("Users").child(username).child("Cont").child("cont"+id).child("Tag");
-        videoRef.addListenerForSingleValueEvent(new ValueEventListener() {
+        DatabaseReference videoRef1 = database.getReference("Users").child(username).child("Cont").child("cont"+id).child("Fav");
+        DatabaseReference videoRef2 = database.getReference("Users").child(username).child("Cont").child("cont"+id).child("Tag");
+        videoRef2.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 Boolean doTag = dataSnapshot.getValue(Boolean.class);
                 if (doTag != null) {
-                    videoRef.setValue(!doTag);
+                    videoRef2.setValue(!doTag);
                     if (!doTag) {
                         holder.tag.setImageResource(R.drawable.baseline_bookmark_40); // 喜爱图标
                         setDoTag = true;
@@ -799,8 +981,8 @@ private OnProfileImageClickListener onProfileImageClickListener;
                     Log.d("VideoAdapter", "setDoTag value: " + setDoTag); // 添加一个 Log 语句来输出 setDoFav 的值
                 }else{
 
-                    videoRef.setValue(true);
-
+                    videoRef2.setValue(true);
+                    videoRef1.setValue(false);
                 }
             }
             @Override

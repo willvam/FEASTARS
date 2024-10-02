@@ -6,13 +6,13 @@ public class Video {
     private final String address;
     private final String date;
     private final String price ;
-
     private final Long id;
     private final String uploader;
     private final String profileImageUrl;
+    private final String videoPic;
 
 
-    public Video(String videoUrl, String title, String address, String date, String price, long id,String uploader,String profileImageUrl) {
+    public Video(String videoUrl, String title, String address, String date, String price, long id, String uploader, String profileImageUrl, String videoPic) {
 
         if (videoUrl == null) {
             throw new IllegalArgumentException("VideoUrl cannot be null");
@@ -44,6 +44,7 @@ public class Video {
         this.id = id;
         this.uploader = uploader;
         this.profileImageUrl = profileImageUrl;
+        this.videoPic = videoPic;
 
     }
 
@@ -67,6 +68,8 @@ public class Video {
 
     public String getUploader(){return uploader;}
     public String getprofileImageUrl(){return profileImageUrl;}
+
+    public String getVideoPic() {return videoPic;}
 
 
 }

@@ -96,7 +96,7 @@ public class ClickedFragment extends Fragment {
 
         Log.d("Personal", "videoList: " + videoList);
 
-        adapter = new VideoAdapter(videoList, videosRef, fragmentManager, null, idPassCallback);
+        adapter = new VideoAdapter(videoList, videosRef, fragmentManager, null, idPassCallback, null);
         viewPager2.setAdapter(adapter);
 
         viewPager2.registerOnPageChangeCallback(new ViewPager2.OnPageChangeCallback() {

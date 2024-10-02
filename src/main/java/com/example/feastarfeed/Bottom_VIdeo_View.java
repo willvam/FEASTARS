@@ -183,6 +183,7 @@ public class Bottom_VIdeo_View extends Fragment {
                     String videoUrl = snapshot.child("videoUrl").getValue(String.class);
                     Long id = snapshot.child("id").getValue(Long.class);
                     String uploader = snapshot.child("Uploader").getValue(String.class);
+                    String videoPic = snapshot.child("videoPic").getValue(String.class);
 
                     if (title.equals(placeName)) {
                         Log.d("SearchVideo", "placeName:" + placeName);
@@ -193,7 +194,7 @@ public class Bottom_VIdeo_View extends Fragment {
                             @Override
                             public void onDataChange(@NonNull DataSnapshot snapshot) {
                                 String profileImageUrl = snapshot.getValue(String.class);
-                                Video video = new Video(videoUrl, title, address, date, price, id, uploader, profileImageUrl);
+                                Video video = new Video(videoUrl, title, address, date, price, id, uploader, profileImageUrl,videoPic);
                                 videoList.add(video);
                                 adapter.notifyDataSetChanged();
                             }

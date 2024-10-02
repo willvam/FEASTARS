@@ -1,20 +1,19 @@
 package com.example.feastarfeed;
 
-import android.content.Context;
 import android.os.Bundle;
+import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.FrameLayout;
+import android.widget.ImageView;
+import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
-
-import android.util.Log;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
-import android.widget.FrameLayout;
-import android.widget.TextView;
 
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
@@ -31,6 +30,8 @@ public class FollowListFragment extends Fragment implements FollowerAdapter.OnFo
     private TextView tvFollowers, tvFollowing;
 
     private FrameLayout frameFollowlist;
+
+    ImageView close;
 
 
     public interface OnFollowerClickedListener {
@@ -112,6 +113,18 @@ public class FollowListFragment extends Fragment implements FollowerAdapter.OnFo
 
         showFollowerFragment();
 
+        close = view.findViewById(R.id.close);
+        close.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                FragmentManager fragmentManager = getParentFragmentManager();
+                FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+                fragmentTransaction.setCustomAnimations(R.anim.slide_in2, R.anim.slide_out2);
+                fragmentTransaction.replace(R.id.frame_layout,new AccountFragment());
+                fragmentTransaction.addToBackStack(null);
+                fragmentTransaction.commit();
+            }
+        });
 
         Log.d("FollowerListFragment", "username = " + username);
         return view;
@@ -119,11 +132,15 @@ public class FollowListFragment extends Fragment implements FollowerAdapter.OnFo
 
 
     private void showFollowerFragment() {
+        tvFollowers.setBackgroundResource(R.drawable.left2);
+        tvFollowing.setBackgroundResource(R.drawable.right);
         FragmentTransaction transaction = getChildFragmentManager().beginTransaction();
         transaction.replace(R.id.frame_followlist, new FollowerFragment());
         transaction.commit();
     }
     private void showFollowingFragment() {
+        tvFollowing.setBackgroundResource(R.drawable.right2);
+        tvFollowers.setBackgroundResource(R.drawable.left);
         FragmentTransaction transaction = getChildFragmentManager().beginTransaction();
         transaction.replace(R.id.frame_followlist, new FollowingFragment());
         transaction.commit();

@@ -1,24 +1,19 @@
 package com.example.feastarfeed;
 
-import static com.example.feastarfeed.AccountFragment.string;
-
-import android.graphics.Rect;
 import android.os.Bundle;
+import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 import androidx.recyclerview.widget.GridLayoutManager;
-import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-
-import android.util.Log;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
-import android.widget.LinearLayout;
-import android.widget.TextView;
 
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -27,11 +22,8 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
 
 public class OwnVideoFragment extends Fragment {
 
@@ -55,7 +47,7 @@ public class OwnVideoFragment extends Fragment {
 
     public static String string = "ownvideo";
 
-
+    ImageView close;
 
     int count =0;
 
@@ -127,6 +119,19 @@ public class OwnVideoFragment extends Fragment {
             }
         });
 
+        close = view.findViewById(R.id.close);
+        close.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                FragmentManager fragmentManager = getParentFragmentManager();
+                FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+                fragmentTransaction.setCustomAnimations(R.anim.slide_in2, R.anim.slide_out2);
+                fragmentTransaction.replace(R.id.frame_layout,new AccountFragment());
+                fragmentTransaction.addToBackStack(null);
+                fragmentTransaction.commit();
+            }
+        });
+
         loadPersonalVideos();
         return view;
     }
@@ -158,6 +163,7 @@ public class OwnVideoFragment extends Fragment {
                                 String videoUrl = dataSnapshot1.child("videoUrl").getValue(String.class);
                                 Long id = dataSnapshot1.child("id").getValue(Long.class);
                                 String uploader = dataSnapshot1.child("Uploader").getValue(String.class);
+                                String videoPic = snapshot.child("videoPic").getValue(String.class);
 
 
                                 if (videoUrl.equals(videoName)) {
@@ -166,7 +172,7 @@ public class OwnVideoFragment extends Fragment {
                                         @Override
                                         public void onDataChange(@NonNull DataSnapshot snapshot) {
                                             String profileImageUrl = snapshot.getValue(String.class);
-                                            Video video = new Video(videoUrl, title, address, date, price, id, uploader, profileImageUrl);
+                                            Video video = new Video(videoUrl, title, address, date, price, id, uploader, profileImageUrl,videoPic);
                                             videoList.add(video);
                                             Log.d("previewArrayList", "previewArrayList: " + previewArrayList);
                                             Log.d("VideoList", "videoList: " + videoList);

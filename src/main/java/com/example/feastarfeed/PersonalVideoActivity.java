@@ -73,7 +73,7 @@ public class PersonalVideoActivity extends AppCompatActivity {
         FragmentManager fragmentManager = getSupportFragmentManager();
         Log.d("Personal", "videoList: " + videoList);
 
-        adapter = new VideoAdapter(videoList, videosRef, fragmentManager, null, null);
+        adapter = new VideoAdapter(videoList, videosRef, fragmentManager, null, null, null);
         viewPager2.setAdapter(adapter);
 
         viewPager2.registerOnPageChangeCallback(new ViewPager2.OnPageChangeCallback() {

@@ -9,6 +9,8 @@ import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentTransaction;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -61,9 +63,14 @@ public class TagFragment extends Fragment {
     public void onTagClick(String tag){
         count = 1;
         text = tag;
-        if (onCountChangeListener != null) {
-            onCountChangeListener.onCountChanged(count,tag);
-        }
+        SearchFragment searchFragment = new SearchFragment();
+        Bundle bundle = new Bundle();
+        bundle.putString("tag", tag); // 将查询文本放入 Bundle 中
+        searchFragment.setArguments(bundle); // 将 Bundle 设置为 Fragment 的参数
+        FragmentManager fragmentManager = requireActivity().getSupportFragmentManager();
+        FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+        fragmentTransaction.replace(R.id.frame_layout,searchFragment);
+        fragmentTransaction.commit();
         Log.d("tagFragment","tag = "+tag);
         Log.d("tagFragment","count = "+count);
     }

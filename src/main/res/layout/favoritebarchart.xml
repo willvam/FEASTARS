@@ -6,35 +6,52 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:padding="16dp"
-    tools:context=".MainActivity">
+    tools:context=".MainActivity"
+    android:background="@color/topic_5">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal">
-        <Spinner
-            android:id="@+id/spinner_month"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:entries="@array/months_array" />
 
-        <TextView
-            android:id="@+id/titleTextView"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_gravity="start|center_vertical"
-            android:layout_weight="1"
-            android:text="喜愛Tag 排行榜"
-            android:textSize="18sp"
-            android:textStyle="bold" />
-        <Button
+        <ImageView
             android:id="@+id/button1"
-            android:layout_width="80dp"
-            android:layout_height="60dp"
-            android:text="←"
-            android:textSize="20sp"
-            android:textStyle="bold"/>
+            android:layout_width="50dp"
+            android:layout_height="40dp"
+            android:background="@drawable/layout_bkg_5"
+            android:padding="10dp"
+            android:contentDescription="@string/back"
+            android:src="@drawable/back"
+            android:elevation="10dp"
+            android:layout_margin="4dp"/>
 
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:background="@drawable/layout_bkg_3"
+            android:elevation="10dp"
+            android:paddingHorizontal="20dp"
+            android:paddingVertical="8dp"
+            android:layout_margin="4dp">
+
+            <TextView
+                android:id="@+id/titleTextView"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_gravity="start|center_vertical"
+                android:layout_weight="1"
+                android:text="喜愛Tag  排行榜"
+                android:textSize="18sp"
+                android:textStyle="bold" />
+
+            <Spinner
+                android:id="@+id/spinner_month"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:entries="@array/months_array"/>
+
+        </LinearLayout>
 
     </LinearLayout>
 

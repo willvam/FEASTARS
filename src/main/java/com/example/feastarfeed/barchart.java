@@ -1,15 +1,16 @@
 package com.example.feastarfeed;
 
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
-
 import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.view.View;
+import android.view.Window;
 import android.widget.AdapterView;
-import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.Spinner;
+
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
 
 import com.github.mikephil.charting.charts.BarChart;
 import com.github.mikephil.charting.components.XAxis;
@@ -45,6 +46,9 @@ public class barchart extends AppCompatActivity implements AdapterView.OnItemSel
         super.onCreate(savedInstanceState);
         setContentView(R.layout.barchart);
 
+        Window window = getWindow();
+        window.setStatusBarColor(getColor(R.color.topic));
+
         spinnerMonth = findViewById(R.id.spinner_month);
         //spinnerMonth.setOnItemSelectedListener(this);
 
@@ -61,7 +65,7 @@ public class barchart extends AppCompatActivity implements AdapterView.OnItemSel
         spinnerMonth.setSelection(currentMonthIndex);
         spinnerMonth.setOnItemSelectedListener(this);
 
-        Button button1 = findViewById(R.id.button1);
+        ImageView button1 = findViewById(R.id.button1);
         button1.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {

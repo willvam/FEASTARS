@@ -10,6 +10,7 @@ import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.Window;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
@@ -54,6 +55,9 @@ public class TagSearchActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_tag_search);
+
+        Window window = getWindow();
+        window.setStatusBarColor(getColor(R.color.topic));
 
         totalFoodTagRef = FirebaseDatabase.getInstance().getReference("totalfoodtag");
 

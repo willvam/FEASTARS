@@ -5,7 +5,8 @@ import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.view.View;
-import android.widget.Button;
+import android.view.Window;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -16,7 +17,6 @@ import com.github.mikephil.charting.charts.PieChart;
 import com.github.mikephil.charting.data.PieData;
 import com.github.mikephil.charting.data.PieDataSet;
 import com.github.mikephil.charting.data.PieEntry;
-import com.github.mikephil.charting.formatter.PercentFormatter;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -38,11 +38,14 @@ public class PieChartActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_pie_chart);
 
+        Window window = getWindow();
+        window.setStatusBarColor(getColor(R.color.topic));
+
         pieChart = findViewById(R.id.pieChart);
         uploaderTextView = findViewById(R.id.uploaderTextView);
         dateTextView = findViewById(R.id.dateTextView);
 
-        Button button1 = findViewById(R.id.button1);//返回
+        ImageView button1 = findViewById(R.id.button1);//返回
         button1.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -96,8 +99,8 @@ public class PieChartActivity extends AppCompatActivity {
                     pieChart.setCenterTextSize(34);
 
                     // 設置上傳者和上傳日期
-                    uploaderTextView.setText("上傳者: " + uploader);
-                    dateTextView.setText("上傳日期: " + date);
+                    uploaderTextView.setText("上傳者： " + uploader);
+                    dateTextView.setText("上傳日期： " + date);
 
 
                     // 隱藏 Description Label
@@ -140,7 +143,7 @@ public class PieChartActivity extends AppCompatActivity {
 
                                 PieData pieData = new PieData(dataSet);
                                 pieChart.setData(pieData);
-                                pieChart.setCenterText("總觀看數: " + totalViews); // 設置中心文字
+                                pieChart.setCenterText("總觀看數： " + totalViews); // 設置中心文字
                                 pieChart.setCenterTextSize(34);
 
                                 // 設置上傳者和上傳日期

@@ -1,16 +1,16 @@
 package com.example.feastarfeed;
 
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
-
 import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
+import android.view.Window;
 import android.widget.AdapterView;
-import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.Spinner;
+
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
 
 import com.github.mikephil.charting.charts.BarChart;
 import com.github.mikephil.charting.components.XAxis;
@@ -20,8 +20,6 @@ import com.github.mikephil.charting.data.BarDataSet;
 import com.github.mikephil.charting.data.BarEntry;
 import com.github.mikephil.charting.formatter.IndexAxisValueFormatter;
 import com.github.mikephil.charting.utils.ColorTemplate;
-import com.google.android.gms.tasks.OnFailureListener;
-import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -49,6 +47,9 @@ public class favoritebarchart extends AppCompatActivity implements AdapterView.O
         super.onCreate(savedInstanceState);
         setContentView(R.layout.favoritebarchart);
 
+        Window window = getWindow();
+        window.setStatusBarColor(getColor(R.color.topic));
+
         spinnerMonth = findViewById(R.id.spinner_month);
         //spinnerMonth.setOnItemSelectedListener(this);
 
@@ -66,7 +67,7 @@ public class favoritebarchart extends AppCompatActivity implements AdapterView.O
         spinnerMonth.setSelection(currentMonthIndex);
         spinnerMonth.setOnItemSelectedListener(this);
 
-        Button button1 = findViewById(R.id.button1);
+        ImageView button1 = findViewById(R.id.button1);
         button1.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {

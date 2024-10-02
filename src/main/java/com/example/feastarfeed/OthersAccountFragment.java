@@ -424,13 +424,14 @@ public class OthersAccountFragment extends Fragment {
                                 String videoUrl = dataSnapshot1.child("videoUrl").getValue(String.class);
                                 Long id = dataSnapshot1.child("id").getValue(Long.class);
                                 String uploader = dataSnapshot1.child("Uploader").getValue(String.class);
+                                String videoPic = snapshot.child("videoPic").getValue(String.class);
                                 Log.d("AccountFragment", "videoUrl: " + videoUrl);
                                 userRef.child(uploader).child("profileImageUrl").addListenerForSingleValueEvent(new ValueEventListener() {
                                     @Override
                                     public void onDataChange(@NonNull DataSnapshot snapshot) {
                                         String profileImageUrl = snapshot.getValue(String.class);
                                         if (videoUrl.equals(videoName)){
-                                            Video video = new Video(videoUrl,title, address, date, price, id, uploader,profileImageUrl);
+                                            Video video = new Video(videoUrl,title, address, date, price, id, uploader,profileImageUrl,videoPic);
                                             videoList.add(video);
                                             Log.d("previewArrayList", "previewArrayList: " + previewArrayList);
                                             Log.d("VideoList", "videoList: " + videoList);

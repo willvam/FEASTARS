@@ -9,7 +9,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.ImageButton;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
@@ -93,36 +92,31 @@ public class CommentFragment extends Fragment {
             public void onClick(View v) {
                 String content = contentET.getText().toString().trim();
                 String user = SharedPreferencesUtils.getUsername(requireContext());
+
                 if (TextUtils.isEmpty(content)) {
+                    // 添加处理空内容的逻辑
+                    contentLayout.setError("内容不能为空");
                 } else {
                     contentLayout.setError(null);
-                    cmtRef.setValue(user).addOnSuccessListener(new OnSuccessListener<Void>() {
-                        @Override
-                        public void onSuccess(Void unused) {
-                            contentET.setText("");
-                            Log.d("userComment", "user : " + user);
-                        }
-                    }).addOnFailureListener(new OnFailureListener() {
-                        @Override
-                        public void onFailure(@NonNull Exception e) {
-                            Log.d("userComment", "userFail");
-                        }
-                    });
-                    Map<String, Object> updates = new HashMap<>();
-                    String key1 = "user";
-                    String key2 = "content";
-                    updates.put(key1, user);
-                    updates.put(key2, content);
-                    cmtRef.push().updateChildren(updates)
+
+                    // 创建新的留言引用
+                    DatabaseReference newCmtRef = cmtRef.push();
+                    Map<String, Object> commentData = new HashMap<>();
+                    commentData.put("user", user);
+                    commentData.put("content", content);
+
+                    newCmtRef.updateChildren(commentData)
                             .addOnSuccessListener(new OnSuccessListener<Void>() {
                                 @Override
                                 public void onSuccess(Void unused) {
                                     contentET.setText("");
+                                    Log.d("userComment", "user : " + user);
                                 }
                             })
                             .addOnFailureListener(new OnFailureListener() {
                                 @Override
                                 public void onFailure(@NonNull Exception e) {
+                                    Log.d("userComment", "userFail");
                                 }
                             });
 

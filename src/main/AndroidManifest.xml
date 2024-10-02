@@ -26,9 +26,14 @@
         android:usesCleartextTraffic="true"
         tools:targetApi="31">
         <activity
+            android:name=".changeparameter"
+            android:exported="false" />
+        <activity
+            android:name=".UploadAdvertiseActivity"
+            android:exported="false" />
+        <activity
             android:name=".OwnCollectionVideoActivity"
             android:exported="false" />
-
         <activity
             android:name=".PersonalVideoActivity"
             android:exported="false"

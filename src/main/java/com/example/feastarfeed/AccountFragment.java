@@ -67,7 +67,7 @@ public class AccountFragment extends Fragment {
     int tagvideos = 0;
     private List<String> tagvideoIds = new ArrayList<>();
 
-    private long parameterRecom=5;//選擇喜好分數前幾名的加入輪盤
+    private long parameterRecom=11;//選擇喜好分數前幾名的加入輪盤
     public static List<WheelItem> wheelItems;
     PersonalPageAdapter personalPageAdapter;
     private CircleImageView profileImageView;
@@ -526,7 +526,7 @@ public class AccountFragment extends Fragment {
                                         @Override
                                         public void onDataChange(@NonNull DataSnapshot snapshot) {
                                             String profileImageUrl = snapshot.getValue(String.class);
-                                            Video video = new Video(videoUrl, title, address, date, price, id, uploader, profileImageUrl);
+                                            Video video = new Video(videoUrl, title, address, date, price, id, uploader, profileImageUrl, videoPic);
                                             videoList.add(video);
                                             Log.d("previewArrayList", "previewArrayList: " + previewArrayList);
                                             Log.d("VideoList", "videoList: " + videoList);

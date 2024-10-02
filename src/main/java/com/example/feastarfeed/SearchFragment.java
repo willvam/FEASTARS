@@ -169,6 +169,8 @@ public class SearchFragment extends Fragment implements GoogleMap.OnMarkerClickL
 
     String query = "";
 
+    String makeMarkAddress, searchAddress;
+
     public SearchFragment() {
 
     }
@@ -205,6 +207,11 @@ public class SearchFragment extends Fragment implements GoogleMap.OnMarkerClickL
         googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(myLocation, 12f));
 
         LatLng chiayi = new LatLng(23.464056589663414, 120.44544208361198);
+
+        LatLngBounds chiayiBounds = new LatLngBounds(
+                new LatLng(23.4500, 120.4000), // 西南角
+                new LatLng(23.5000, 120.5000)  // 东北角
+        );
 
         googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(chiayi, 14f));
 
@@ -257,6 +264,8 @@ public class SearchFragment extends Fragment implements GoogleMap.OnMarkerClickL
 
                     AutocompleteSessionToken token = AutocompleteSessionToken.newInstance();
                     FindAutocompletePredictionsRequest predictionsRequest = FindAutocompletePredictionsRequest.builder()
+                            .setLocationBias(RectangularBounds.newInstance(chiayiBounds))
+                            .setCountry("TW")
                             .setTypeFilter(TypeFilter.ESTABLISHMENT) // 指定搜索类型为店铺或地点
                             .setSessionToken(token) // 设置会话令牌
                             .setQuery(address) // 设置搜索查询文本
@@ -278,21 +287,38 @@ public class SearchFragment extends Fragment implements GoogleMap.OnMarkerClickL
                                 Place place = fetchResponse.getPlace();
                                 // 获取地点的经纬度信息
                                 LatLng latLng = place.getLatLng();
-                                if (latLng != null) {
-                                    latitude = latLng.latitude;
-                                    longitude = latLng.longitude;
-                                    Marker marker = googleMap.addMarker(new MarkerOptions()
-                                            .position(latLng)
-                                            .icon(BitmapDescriptorFactory.fromResource(R.drawable.marker)));
-                                    marker.setTag(placeName1);
-                                    marker.setSnippet(place.getAddress());
-                                    marker.setTitle(foodTagArraylist.toString());
-                                    Log.d("SearchFragment", "getAddress : " + place.getAddress());
-                                    // 使用经纬度信息进行后续操作
-                                    Log.i(TAG, "Latitude: " + latitude + ", Longitude: " + longitude);
-                                    Log.d("SearchFragment", "foodTags : " + marker.getTitle());
-                                }  // 未找到经纬度信息
+                                placeRef.addValueEventListener(new ValueEventListener() {
+                                    @Override
+                                    public void onDataChange(@NonNull DataSnapshot snapshot) {
+                                        for (DataSnapshot dataSnapshot : snapshot.getChildren()){
+                                            String name = dataSnapshot.child("title").getValue(String.class);
+                                            if (placeName1.equals(name)){
+                                                makeMarkAddress = dataSnapshot.child("address").getValue(String.class);
+                                                Log.d("SearchFragment","searchAddress = "+searchAddress);
+                                            }
+                                            Log.d("SearchFragment","place.getAddress() = "+place.getAddress());
+                                            if (latLng != null && place.getAddress().equals(makeMarkAddress)) {
+                                                latitude = latLng.latitude;
+                                                longitude = latLng.longitude;
+                                                Marker marker = googleMap.addMarker(new MarkerOptions()
+                                                        .position(latLng)
+                                                        .icon(BitmapDescriptorFactory.fromResource(R.drawable.marker)));
+                                                marker.setTag(placeName1);
+                                                marker.setSnippet(place.getAddress());
+                                                marker.setTitle(foodTagArraylist.toString());
+                                                Log.d("SearchFragment", "getAddress : " + place.getAddress());
+                                                // 使用经纬度信息进行后续操作
+                                                Log.i(TAG, "Latitude: " + latitude + ", Longitude: " + longitude);
 
+                                            }
+                                        }
+                                    }
+
+                                    @Override
+                                    public void onCancelled(@NonNull DatabaseError error) {
+
+                                    }
+                                });
 
                             }).addOnFailureListener((exception) -> {
                                 // 处理请求失败情况
@@ -373,9 +399,12 @@ public class SearchFragment extends Fragment implements GoogleMap.OnMarkerClickL
                                         Log.d("SearchFragment", "foodsTitleArray.size() = " + foodsTitleArray.size());
                                         Log.d("SearchFragment", "foodsArray = " + foodsTitleArray);
                                         Log.d("placeAdapter", "placeAdapter.getCount() = " + placeAdapter.getCount());
-                                        placeAdapter.filteredList.addAll(foodsTitleArray);
-                                        Log.d("placeAdapter", "placeAdapter.filteredList = " + placeAdapter.filteredList);
-                                        placeAdapter.notifyDataSetChanged();
+
+                                        if (foodsTitleArray.size() == count){
+                                            placeAdapter.filteredList.addAll(foodsTitleArray);
+                                            Log.d("placeAdapter", "placeAdapter.filteredList = " + placeAdapter.filteredList);
+                                            placeAdapter.notifyDataSetChanged();
+                                        }
                                     }
 
                                 }
@@ -395,6 +424,7 @@ public class SearchFragment extends Fragment implements GoogleMap.OnMarkerClickL
 
                 }
             });
+
             listView.setVisibility(View.VISIBLE);
         }
 
@@ -420,11 +450,12 @@ public class SearchFragment extends Fragment implements GoogleMap.OnMarkerClickL
                         for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
                             ++x;
                             Log.d("SearchFragment", "x = " + x);
+                            videoId = dataSnapshot.child("id").getValue(int.class);
                             Iterable<DataSnapshot> dataSnapshotIterable = dataSnapshot.child("Foodtags").getChildren();
                             for (DataSnapshot dataSnapshot1 : dataSnapshotIterable) {
                                 foodTag = dataSnapshot1.getValue(String.class);
                                 if (foodTag != null && foodTag.equals(newText)) {
-                                    y = x;
+                                    y = videoId;
                                     count++;
                                 }
                                 Log.d("SearchFragment", "count = " + count);
@@ -492,6 +523,7 @@ public class SearchFragment extends Fragment implements GoogleMap.OnMarkerClickL
 
                 AutocompleteSessionToken token = AutocompleteSessionToken.newInstance();
                 FindAutocompletePredictionsRequest predictionsRequest = FindAutocompletePredictionsRequest.builder()
+                        .setLocationBias(RectangularBounds.newInstance(chiayiBounds))
                         .setTypeFilter(TypeFilter.ESTABLISHMENT) // 指定搜索类型为店铺或地点
                         .setSessionToken(token) // 设置会话令牌
                         .setQuery(selectedPlace) // 设置搜索查询文本
@@ -513,14 +545,31 @@ public class SearchFragment extends Fragment implements GoogleMap.OnMarkerClickL
                             Place place = fetchResponse.getPlace();
                             // 获取地点的经纬度信息
                             LatLng latLng = place.getLatLng();
-                            if (latLng != null) {
-                                latitude = latLng.latitude;
-                                longitude = latLng.longitude;
+                            placeRef.addValueEventListener(new ValueEventListener() {
+                                @Override
+                                public void onDataChange(@NonNull DataSnapshot snapshot) {
+                                    for (DataSnapshot dataSnapshot : snapshot.getChildren()){
+                                        String name = dataSnapshot.child("title").getValue(String.class);
+                                        if (selectedPlace.equals(name)){
+                                            searchAddress = dataSnapshot.child("address").getValue(String.class);
+                                            Log.d("SearchFragment","searchAddress = "+searchAddress);
+                                        }
+                                        Log.d("SearchFragment","place.getAddress() = "+place.getAddress());
+                                        if (latLng != null && place.getAddress().equals(searchAddress)) {
+                                            latitude = latLng.latitude;
+                                            longitude = latLng.longitude;
 
-                                googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 16f));
+                                            googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 16f));
 
-                            }  // 未找到经纬度信息
+                                        }
+                                    }
+                                }
 
+                                @Override
+                                public void onCancelled(@NonNull DatabaseError error) {
+
+                                }
+                            });
 
                         }).addOnFailureListener((exception) -> {
                             // 处理请求失败情况
@@ -541,6 +590,7 @@ public class SearchFragment extends Fragment implements GoogleMap.OnMarkerClickL
                 .include(chiayi) // 設置一個偏好的區域中心
                 .build();
         RectangularBounds locationBias = RectangularBounds.newInstance(bounds);
+
 
 // Use the builder to create a FindCurrentPlaceRequest.
         FindCurrentPlaceRequest request = FindCurrentPlaceRequest.newInstance(placeFields);
